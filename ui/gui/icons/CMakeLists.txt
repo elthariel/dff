@@ -1,0 +1,43 @@
+set(icons_srcs
+  add.png
+  configure.png
+  dff_partition_old.jpg
+  empty.png
+  folder.png
+  interpreter.png
+  pdf.png
+  script-new.png
+  shell.png
+  top.png
+  anim.gif
+  dff_folder.png
+  document.png
+  exit.png
+  gnome-run.png
+  list.png
+  player_play.png
+  script-open.png
+  sound.png
+  video.png
+  applydriver.png
+  dff_folder_old.jpg
+  edit-redo.png
+  extract.png
+  image.png
+  new_case.png
+  presentation.png
+  script-save-as.png
+  spreadsheet.png
+  viewer.png
+  cancel.png
+  dff_partition.png
+  edit-undo.png
+  file.png
+  info.png
+  newlogo.jpg
+  reload.png
+  script-save.png
+  taskbar.png
+)
+#XXX it compile in res file launch the res compilation here
+#catch_python_scripts(icons ${icons_srcs})
