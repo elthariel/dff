@@ -8,6 +8,7 @@
 .*
 *.o
 *.o.*
+*.so
 *.a
 *.s
 *.ko
@@ -28,4 +29,6 @@ install_manifest.txt
 # Top-level generic files
 #
 !.gitignore
+!magic.so
+!magic_64b.so
 
