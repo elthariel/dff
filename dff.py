@@ -26,8 +26,12 @@ graphical = 0
 test = ""
 operating_sys = ""
 if os.name == "posix": 
-    import dl
-    sys.setdlopenflags(sys.getdlopenflags() | dl.RTLD_GLOBAL)
+   try :	
+      import dl
+      sys.setdlopenflags(sys.getdlopenflags() | dl.RTLD_GLOBAL)
+   except ImportError:
+      import ctypes
+      sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
 elif os.name == "nt":
     graphical = 0 
 
