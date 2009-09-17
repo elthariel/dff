@@ -9,19 +9,39 @@ Digital Forensics Framework
 
 1. Introduction
 
-A fully integrated software dedicated to digital forensics, made from three
-important objectives :
+Dff is a simple but powerfull open source tool with a flexible module system
+which will help you in your digital forensics works, including files recovery
+due to error or crash, evidence research and analysis, etc. The source code is
+written in C++ and Python, allowing performances and great extensibility.
 
-- Modularity, contrary to monolithic tools, the modularity proposes a tool which
-  is based on a core and a host of modules. This modular conception presents two
-  advantages : first it permits to improve rapidly the software, second , it
-  permits to easily split the different task for developers.
+Although dff is quite young, it already provides a robust architecture and
+some handy modules. You could download and try it via the Dowload page. Source
+code, Debian packages and even windows setup are available. Any contribution,
+suggestion or remark is welcome ! (see 4. Support)
 
-- Scriptability, it is obvious that scriptability gives more flexibility for a
-  tool. It enables automation and gives the possibility to extend features.
+Nowadays computer forensic analysis tools are mainly large proprietary software
+developed by some well-known companies.
 
-- Genericity, the project tends to be OS independent. We don't want to force
-  people to install a specific Operating System in order to use our software.
+Few free and open source tools offers the same type of fully integrated
+software, most of them are implemented as stand alone tools. Although some
+framework exists, they are not very user or developer friendly. That is why we
+decided to develop this tool as a free and open source and multi-platform
+framework.
+
+This project follows three main goals :
+
+- Modularity. In contrary to the monolithic model, the modular model is based on
+  an a host and many modules. This modular conception presents two advantages :
+  it permits to improve rapidly the software and to split easily tasks for
+  developers
+
+- Scriptability, it is obvious that the ability to be scripted gives more
+  flexibility to a tool, but it enables automation and gives the possibility to
+  extend features
+
+- Genericity, the project tries to remain OS independent. We want to help people
+  where they are ! Letting them choose any Operating System to use this
+  software.
 
 
 2. Installation
