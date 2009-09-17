@@ -40,6 +40,11 @@ endif(UNIX)
 
 find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
+if  (${SWIG_VERSION} VERSION_LESS "1.3.38")
+  MESSAGE(FATAL_ERROR "Need SWIG version >= 1.3.38 (current version is ${SWIG_VERSION})")
+endif  (${SWIG_VERSION} VERSION_LESS "1.3.38")
+  
+
 # Project-wide swig options
 #SET(CMAKE_SWIG_FLAGS "-py3")
 
