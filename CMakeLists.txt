@@ -116,7 +116,7 @@ endif(UNIX)
 install_file(dff_launch ${dff_scripts})
 
 # Create launcher. Replace CMake variables in it, used after install.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/launcher.sh ${CMAKE_CURRENT_BINARY_DIR}/dff)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ressources/linux_launcher.sh ${CMAKE_CURRENT_BINARY_DIR}/dff)
 
 #### Subdirectories to recurse
 add_subdirectory (api)
