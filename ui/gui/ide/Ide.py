@@ -107,7 +107,6 @@ class Ide(QWidget):
 
         if path[-1] != "/":
             path += "/"
-
         lpath = path + filename
         scin.setScriptPath(lpath)
         self.scripTab.addTab(scin,  filename)

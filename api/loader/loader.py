@@ -86,6 +86,7 @@ class loader():
             module_path = args
             mode = None
             try:
+	      print "LOADING FROM " + module_path
               mode = os.stat(module_path)[ST_MODE]
             except:
               print "File doesn't exist"
@@ -169,7 +170,11 @@ class loader():
 
     def do_load(self, args):
         path = args
-        if args[0] != "/":
+	if os.name == "nt":
+	  if args[1] != ":":
+            path = os.getcwd() + "/" + args
+    	else:	
+          if args[0] != "/":
             path = os.getcwd() + "/" + args
         self.__instance.Load(path)
 
