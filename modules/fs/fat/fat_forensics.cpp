@@ -31,7 +31,7 @@ int			Fat::GetSlack(FileInfo *owner)
   info = info_stack.top();
   slack_size = (((owner->size / ClusterSize) + 1) * ClusterSize) - owner->size;
   index = owner->clusters->size() - 1;
-  if ((slack_size > 0) and (index >= 0))
+  if ((slack_size > 0) && (index >= 0))
     {
       fi = new FileInfo;
       fi->type = SLACK;

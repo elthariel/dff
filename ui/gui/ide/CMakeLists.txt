@@ -3,10 +3,11 @@ set(ide_srcs
   DFF_Ide.py
   Ide.py
   __init__.py
-  dialog.py
   generateCode.py
   messageBox.py
   toolBar.py
+  ideWizard.py
+  ideWizardPages.py
 )
 
 install_file(ide ${ide_srcs})

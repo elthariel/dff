@@ -16,10 +16,17 @@ set_target_properties (${SWIG_MODULE_libexceptions_REAL_NAME} PROPERTIES
   SUFFIX ".pyd"
 )
 endif ( CMAKE_GENERATOR MATCHES "Visual Studio")
+if (UNIX)
 add_custom_target(patchexceptions ALL
   COMMENT "Patching libexceptions.py"
   COMMAND python patch.py 
 )
+elseif(UNIX)
+add_custom_target(patchexceptions ALL
+  COMMENT "Patching libexceptions.py"
+  COMMAND ${PYTHON_EXECUTABLE} patch.py 
+)
+endif(UNIX)
 set(exceptions_srcs
   __init__.py
    libexceptions.py

@@ -97,21 +97,11 @@ macro(install_lib target_name)
 endmacro(install_lib)
 
 #### Deploying package file and DFF startup files
-if (UNIX)
 set(dff_scripts
   __init__.py
   dff.py
   dff-gui.py
 )
-else(UNIX)
-set(dff_scripts
-  __init__.py
-  dff.py
-  dff-gui.py
-  dff.ico	  
-)
-else(UNIX)
-endif(UNIX)
 
 install_file(dff_launch ${dff_scripts})
 
@@ -122,7 +112,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ressources/linux_launcher.sh ${CMAKE_
 add_subdirectory (api)
 add_subdirectory (modules)
 add_subdirectory (ui)
-
+add_subdirectory (ressources)
+if (NOT UNIX)
+add_subdirectory (Prerequisites)
+endif(NOT UNIX)
 SET(CPACK_SET_DESTDIR "ON")
 #### Project install
 
@@ -132,7 +125,7 @@ SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ressources/ReadM
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/ressources/Copyright.txt")
 SET(CPACK_PACKAGE_VERSION_MAJOR "0") 
 SET(CPACK_PACKAGE_VERSION_MINOR "4")
-SET(CPACK_PACKAGE_VERSION_PATCH "2")
+SET(CPACK_PACKAGE_VERSION_PATCH "3")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "DFF")
 IF(WIN32 AND NOT UNIX)
   SET(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\ressources\\\\arxsys.bmp")
@@ -153,6 +146,16 @@ IF(WIN32 AND NOT UNIX)
  CreateShortCut \\\"$DESKTOP\\\\dff (gui).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff-gui.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"  
  CreateShortCut \\\"$SMPROGRAMS\\\\DFF\\\\dff (shell).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"  
  CreateShortCut \\\"$SMPROGRAMS\\\\DFF\\\\dff (gui).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff-gui.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"  
+ 
+   MessageBox MB_YESNO \\\"Install Python 2.6.2 ? \\\" /SD IDYES IDNO endPython
+     ExecWait '\\\"msiexec\\\" /i \\\"Prerequisites\\\\python-2.6.2.msi\\\" /passive'
+     Goto endPython   
+   endPython:
+   MessageBox MB_YESNO \\\"Install PyQt 4.5.4.1 ? \\\" /SD IDYES IDNO endPyQt
+     ExecWait '\\\"Prerequisites\\\\PyQt-Py2.6-gpl-4.5.4-1.exe\\\"'
+     Goto endPyQt
+   endPyQt:
+   RMDir /r \\\"$INSTDIR\\\\dff\\\\Prerequisites\\\"
  ")
   SET(CPACK_SOURCE_GENERATOR "ZIP")
 ELSE(WIN32 AND NOT UNIX)
