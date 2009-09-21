@@ -104,9 +104,11 @@ class Ide(QWidget):
         filename = scriptname + ".py"
                         
         scin.setName(filename)
+
+        if path[-1] != "/":
+            path += "/"
+
         lpath = path + filename
-        print "popo"
-        print lpath
         scin.setScriptPath(lpath)
         self.scripTab.addTab(scin,  filename)
         self.buttonCloseTab.setEnabled(True)
