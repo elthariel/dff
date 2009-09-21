@@ -19,6 +19,10 @@ from PyQt4.QtGui import *
 from PyQt4.Qsci import *
 
 from dialog import newDialog
+
+#wizard
+from ideWizard import ideWizard
+
 from generateCode import generateCode
 from messageBox import messageBoxWarningSave,  messageBoxErrorSave
 from DFF_Editor import Editor
@@ -29,8 +33,9 @@ class Ide(QWidget):
     def __init__(self, parent):
         super(Ide,  self).__init__(parent)
         self.loader = loader.loader()
-        #self.scripts = []
+        self.parent = parent
         self.pages = []
+        self.mainWindow = self.parent.getParent()
         
     def g_display(self):
         self.vbox = QVBoxLayout()
@@ -63,44 +68,48 @@ class Ide(QWidget):
     ##       Scintilla creation             #
     ######################   
     def newactBack(self):
-        if not self.newdialog.isVisible():
-            iReturn = self.newdialog.exec_()
+        #prepare for wizard        
+        self.ideWiz = ideWizard(self, "New script")
+#        self.ideWiz.exec_()
 
-            if iReturn :
-                values = self.newdialog.getValues()
-                scriptname = values[0]
-                if scriptname == "":
-                    scriptname = "Untitled"
-                location = values[1]
-                ext = values[2]
-                if ext == "Python":
-                    scriptname += ".py"
-                elif ext == "C++":
-                    scriptname += ".cpp"
-                type = values[3]
+        #XXX cancel 
+        self.ideWiz.exec_()
 
-                name = scriptname.split('.')
-                if type == "Script":
-                    generate = generateCode()
-                    print "name generate ", name[0]
-                    buffer = generate.generate_script(str(name[0]))
-                    scin = self.createPage(buffer)
-                elif type == "Driver":
-                    generate = generateCode()
-                    buffer = generate.generate_drivers(str(name[0]))
-                    scin = self.createPage(buffer)
-                elif type == "Graphical":
-                    generate = generateCode()
-                    buffer = generate.generate_script_gui(str(name[0]))
-                    scin = self.createPage(buffer)
-                elif type == "Empty":
-                    scin = self.createPage("")
+        #First page fields
+        scriptname = self.ideWiz.field("name").toString()
+        path = self.ideWiz.field("path").toString()
+        #Get script type
+        stype = self.ideWiz.field("typeS").toBool()
+        gtype = self.ideWiz.field("typeG").toBool()
+        dtype = self.ideWiz.field("typeD").toBool()
+
+        #Get author's informations from wizard
+        authfname = self.ideWiz.field("authFName").toString()
+        authlname = self.ideWiz.field("authLName").toString()
+        authmail = self.ideWiz.field("authMail").toString()
+
+        #Generate script
+        generate = generateCode()
+        generate.set_header(authfname, authlname, authmail)
+        if stype == True:
+            buffer = generate.generate_script(str(scriptname))
+            scin = self.createPage(buffer)
+        if gtype == True:
+            buffer = generate.generate_drivers(str(scriptname))
+            scin = self.createPage(buffer)
+        if dtype == True:
+            buffer = generate.generate_script_gui(str(scriptname))
+            scin = self.createPage(buffer)
+            
+        filename = scriptname + ".py"
                         
-                scin.setName(scriptname)
-                path = location + scriptname
-                scin.setScriptPath(path)
-                self.scripTab.addTab(scin,  scriptname)
-                self.buttonCloseTab.setEnabled(True)
+        scin.setName(filename)
+        lpath = path + filename
+        print "popo"
+        print lpath
+        scin.setScriptPath(lpath)
+        self.scripTab.addTab(scin,  filename)
+        self.buttonCloseTab.setEnabled(True)
     
     def openactBack(self):
         #POSIX
@@ -108,7 +117,6 @@ class Ide(QWidget):
         if sFileName:
             file = open(sFileName,  "r")
             scin = self.createPage("")
-            #self.scripts.append(sFileName)
             buffer = QString()
             buffer = file.read()
             scin.insert(buffer)
@@ -132,8 +140,6 @@ class Ide(QWidget):
         page = self.pages[index]
         path = page.scriptPath
         if not path.isEmpty():
-            #current = self.scripTab.currentWidget()
-            #filename = self.scripts[index]
             file = open(path,  "w")
             file.write(page.text())
             file.close()
@@ -145,8 +151,6 @@ class Ide(QWidget):
         title = self.scripTab.tabText(index)
         if title:
             sFileName = QFileDialog.getSaveFileName(self, QApplication.translate("MainWindow", "Save as", None, QApplication.UnicodeUTF8),title)
-            print sFileName
-            #current = self.scripTab.currentWidget()
             page = self.pages[index]
             file = open(str(sFileName),"w")
             file.write(page.text())
@@ -155,23 +159,23 @@ class Ide(QWidget):
     def runactBack(self):
         if self.scripTab.count() > 0:
             index = self.scripTab.currentIndex()
-            #path = self.scripts[index]
             page = self.pages[index]
             self.saveactBack()
+
             path = page.getScriptPath()
             self.loader.do_load(str(path))
-            
+        else:
+            print "No script found"
+        
     def undoactBack(self):
         if self.scripTab.count() > 0:
             index = self.scripTab.currentIndex()
-            #path = self.scripts[index]
             page = self.pages[index]
             page.undo()
 
     def redoactBack(self):
         if self.scripTab.count() > 0:
             index = self.scripTab.currentIndex()
-            #path = self.scripts[index]
             page = self.pages[index]
             page.redo()
 
@@ -181,9 +185,13 @@ class Ide(QWidget):
             currentPage = self.scripTab.currentWidget()
             warning = messageBoxWarningSave(self,  "Save document?")
             warning.exec_()
+
             self.scripTab.removeTab(index)
-            currentPage.destroy()
+            page = self.pages[index]
+            self.pages.remove(page)
+            currentPage.destroy(True, True)
             if self.scripTab.count() == 0:
                 self.buttonCloseTab.setEnabled(False)
+                self.mainWindow.Ide_toolBar.disableToolbar()
 
    

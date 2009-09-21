@@ -35,7 +35,7 @@ class DFF_Ide(QDockWidget):
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
         self.setObjectName("IDE")
         self.setWindowTitle(QApplication.translate("IDE", "IDE", None, QApplication.UnicodeUTF8))
-        
+
     def addAction(self, mainWindow):
         self.__action = QAction(self)
         self.__action.setCheckable(True)
@@ -59,3 +59,6 @@ class DFF_Ide(QDockWidget):
     
         self.setWidget(self.ide)
     
+
+    def getParent(self):
+        return self.__mainWindow

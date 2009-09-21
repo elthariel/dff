@@ -20,8 +20,32 @@ class generateCode():
     def __init__(self):
         pass
     
+    def set_header(self, fname, lname, mail):
+        self.fname = fname
+        self.lname = lname
+        self.mail = mail
+
+    def generate_header(self):
+        buff="# DFF -- An Open Source Digital Forensics Framework\n\
+#\n\
+# This program is free software, distributed under the terms of\n\
+# the GNU General Public License Version 2. See the LICENSE file\n\
+# at the top of the source tree.\n\
+# \n\
+# See http://www.digital-forensic.org for more information about this\n\
+# project. Please do not directly contact any of the maintainers of\n\
+# DFF for assistance; the project provides a web site, mailing lists\n\
+# and IRC channels for your use.\n\
+# \n\
+# Author(s):\n\
+#  " + self.fname + " "+ self.lname +" < " + self.mail + ">\n\
+#\n\
+\n"
+        return buff
+
     def generate_script(self,  scriptname):
-        buff = "from api.vfs import *\n\
+        buff = self.generate_header()
+        buff += "from api.vfs import *\n\
 from api.module.module import *\n\
 \n\
 class " + scriptname.upper() + "(Script):\n\
@@ -50,11 +74,12 @@ class " + scriptname + "(Module):\n\
     #self.conf.add(\"filename\", \"node\")\n\
     #Add your const here\n\
     #self.conf.add_const(\"mime-type\", \"JPEG\")\n\
-    #self.tags = \"test\""
+    #self.tags = \"test\"\n"
         return buff
 
     def generate_script_gui(self,  scriptname):
-	buff = "from PyQt4 import QtCore, QtGui\n\
+        buff = self.generate_header()
+	buff += "from PyQt4 import QtCore, QtGui\n\
 from PyQt4.QtCore import *\n\
 from PyQt4.QtGui import *\n\
 from api.module.module import *\n\
@@ -91,12 +116,13 @@ class " + scriptname + "(Module):\n\
     Module.__init__(self, \"" + scriptname + "\"," + scriptname.upper() + ")\n\
     #Add your argument and tags here\n\
     #self.conf.add(\"filename\", \"node\")\n\
-    #self.tags = \"test\""
+    #self.tags = \"test\"\n"
         return buff	
 
 
     def generate_drivers(self,  drivername):
-      buff="from api.vfs import *\n\
+        buff = self.generate_header()
+        buff += "from api.vfs import *\n\
 from api.module.module import *\n\
 from api.type.libtype import *\n\
 from api.vfs.libvfs import *\n\
@@ -161,4 +187,4 @@ class " + drivername.upper() + "(fso):\n\
       #return 0 if all fd are closed\n\
       return 0\n"
      
-      return buff
+        return buff

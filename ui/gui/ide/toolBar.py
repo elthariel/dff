@@ -29,16 +29,16 @@ class DFF_ToolBar_Ide(QToolBar):
         self.initCallbackOptional()
         
     def g_display(self):
-        self.newact = QAction(QIcon(":script-new.png"),  "New",  self)
+        self.newact = QAction(QIcon(":script-new.png"),  "New Script",  self)
         self.addAction(self.newact)
         
-        self.openact = QAction(QIcon(":script-open.png"),  "Open",  self)
+        self.openact = QAction(QIcon(":script-open.png"),  "Open Script",  self)
         self.addAction(self.openact)
         
-        self.saveact = QAction(QIcon(":script-save.png"),  "Save",  self)
+        self.saveact = QAction(QIcon(":script-save.png"),  "Save Script",  self)
         self.addAction(self.saveact)
     
-        self.saveasact = QAction(QIcon(":script-save-as.png"),  "Save as",  self)
+        self.saveasact = QAction(QIcon(":script-save-as.png"),  "Save Script as",  self)
         self.addAction(self.saveasact)
         
         self.runact = QAction(QIcon(":script-run.png"),  "Load script",  self)
@@ -74,7 +74,13 @@ class DFF_ToolBar_Ide(QToolBar):
             self.undoact.setEnabled(False)
             self.redoact.setEnabled(False)
             
-            
+    def disableToolbar(self):
+            self.saveact.setEnabled(False)
+            self.saveasact.setEnabled(False)
+            self.runact.setEnabled(False)
+            self.undoact.setEnabled(False)
+            self.redoact.setEnabled(False)
+ 
     def newScript(self):
         if not self.ide:
             self.ide =DFF_Ide(self.mainWindow)

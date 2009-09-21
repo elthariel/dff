@@ -17,7 +17,6 @@
 from PyQt4.QtCore import *
 from PyQt4.Qsci import *
 
-#TODO
 
 class   Editor(QsciScintilla):
     def __init__(self,parent):
