@@ -18,8 +18,6 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.Qsci import *
 
-from dialog import newDialog
-
 #wizard
 from ideWizard import ideWizard
 
@@ -39,7 +37,6 @@ class Ide(QWidget):
         
     def g_display(self):
         self.vbox = QVBoxLayout()
-        self.newdialog = newDialog(self)
         self.createSplitter()
         self.setLayout(self.vbox)
 
