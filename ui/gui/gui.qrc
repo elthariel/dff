@@ -48,6 +48,7 @@
     <file alias="script-redo.png">icons/edit-redo.png</file>
     <file alias="script-undo.png">icons/edit-undo.png</file>
 
+    <file alias="splash.png">icons/splash.png</file>
     
     <file alias="Dff_en">i18n/Dff_en.qm</file>
     <file alias="Dff_fr">i18n/Dff_fr.qm</file>

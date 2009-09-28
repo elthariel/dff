@@ -16,7 +16,8 @@
 
 import sys
 
-from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QApplication, QSplashScreen, QPixmap
+from PyQt4.QtCore import Qt
 
 from mainWindow import DFF_MainWindow
 from configuration.Translator import DFF_Translator
@@ -28,9 +29,16 @@ class gui():
     def __init__(self):
         """Launch GUI"""
         #translator = DFF_Translator()
-    
         app = QApplication(sys.argv)
         #app.installTranslator(translator)
+        pixmap = QPixmap(":splash.png")
+        splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
+        splash.setMask(pixmap.mask()) # this is usefull if the splashscreen is not a regular ractangle...
+        splash.show()
+        #splash.showMessage("test")
+
         mainWindow = DFF_MainWindow(app)
         mainWindow.show()
+
+        splash.finish(mainWindow)
         sys.exit(app.exec_())
