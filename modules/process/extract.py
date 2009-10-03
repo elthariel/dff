@@ -11,7 +11,7 @@
 # and IRC channels for your use.
 # 
 # Author(s):
-#  Solal Jacob <sja@digital-forensic.org>
+#  Frederic Baguelin <fba@digital-forensic.org>
 # 
 
 import os
@@ -28,7 +28,6 @@ class EXTRACT(Script):
     self.vfs = vfs.vfs()
     self.total = 1
     self.current = 0
-    self.debug = open("/home/udgover/extract/debug_read",'wb')
 
   def start(self, args):
     self.node = args.get_node('file')
@@ -91,7 +90,6 @@ class EXTRACT(Script):
     try:
       self.current += 1
       self.stateinfo = str(self.current) + " / " + str(self.total)# + "( " + node.path + "/"  + node.name + " )"
-      self.debug.write(node.path + "/"  + node.name + " in " + syspath + "/" + sysname + "\n")
       vfile = node.open()
       path = syspath.rfind('/')
       if not os.path.exists(syspath):
