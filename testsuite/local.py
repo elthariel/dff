@@ -16,8 +16,6 @@
 #
 
 import unittest, sys, os, random
-from cStringIO import StringIO
-
 from dffunittest import DffUnittest
 
 class LocalTests(DffUnittest):
@@ -26,8 +24,6 @@ class LocalTests(DffUnittest):
     Keep in mind that VFS loads are persistant from one test to another.
 
     TODO
-    - seek
-    - negative seek
     - open & close many files check fd reallocation
     - load same file two times, open both, seek one, check both position are OK
 
@@ -36,6 +32,7 @@ class LocalTests(DffUnittest):
     def __init__(self, name='runTest'):
         unittest.TestCase.__init__(self, name)
 
+# FIXME what about windows ?
     testFile = '/etc/passwd'
 
     def test01_LoadOneFile(self):
@@ -52,8 +49,8 @@ class LocalTests(DffUnittest):
         driverStdout, driverStderr = self._restore_streams()
 
         # validate output from driver loading
-        self.assertEqual(driverStdout, '')
-        self.assertEqual(driverStderr, '')
+        self.assertFalse(driverStdout)
+        self.assertFalse(driverStderr)
         
         # validate output from framework
         self.assertEqual(sys.stdout.getvalue(), self.testFile + '\nresult:\nno problem\n')
@@ -106,12 +103,12 @@ class LocalTests(DffUnittest):
         loadedItems = sys.stdout.getvalue()[countPosStart:countPosEnd]
 
         # validate output from driver loading
-        self.assertEqual(driverStdout, '')
-        self.assertEqual(driverStderr, '')
+        self.assertFalse(driverStdout)
+        self.assertFalse(driverStderr)
         
         # validate output from framework
         self.assertEqual(sys.stdout.getvalue(), expectedStdout, "maybe hidden files exist in " + os.getcwd() + " (directory loaded by this test, expected: " + expectedItems + " items, loaded: " + loadedItems + ")")
-        self.assertEqual(sys.stderr.getvalue(), '')
+        self.assertFalse(sys.stderr.getvalue())
         
     def test04_ReadFile(self):
         """ #04 Read 128 byte in previously loaded file
@@ -183,4 +180,7 @@ suite.addTest(LocalTests('test02_LsOneFile'))
 suite.addTest(LocalTests('test03_LoadOneDirectory'))
 suite.addTest(LocalTests('test04_ReadFile'))
 suite.addTest(LocalTests('test05_RandomReadFile'))
-unittest.TextTestRunner(verbosity=2).run(suite)
+res = unittest.TextTestRunner(verbosity=2).run(suite)
+
+if (len(res.errors) or len(res.failures)):
+    sys.exit(1)

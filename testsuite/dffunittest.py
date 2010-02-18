@@ -112,11 +112,11 @@ class DffUnittest(unittest.TestCase):
         try:
             readOut = self.driverOut.read(4096)
         except:
-            readOut = ''
+            readOut = None
         try:
             readErr = self.driverErr.read(4096)
         except:
-            readErr = ''
+            readErr = None
 
         self.driverOut.flush()
         self.driverErr.flush()
