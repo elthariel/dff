@@ -36,13 +36,13 @@ class SeekTests(DffUnittest):
         """
 
         # avoid output from driver loading in current stdout/stderr
-        self._hook_streams(sys.__stdout__.fileno(), sys.__stderr__.fileno())
+        self.hook_streams(sys.__stdout__.fileno(), sys.__stderr__.fileno())
 
         # load an invalid path
         self.ui.onecmd('local --path ' + self.nonExistentFilePath + ' --parent /')
 
         # get output
-        driverStdout, driverStderr = self._restore_streams()
+        driverStdout, driverStderr = self.restore_streams()
 
         # validate output from framework
         self.assertEqual(sys.stdout.getvalue(), self.nonExistentFilePath + '\nValue error: local path < ' + self.nonExistentFilePath + " > doesn't exist\n")
@@ -57,13 +57,13 @@ class SeekTests(DffUnittest):
         """
 
         # avoid output from driver loading in current stdout/stderr
-        self._hook_streams(sys.__stdout__.fileno(), sys.__stderr__.fileno())
+        self.hook_streams(sys.__stdout__.fileno(), sys.__stderr__.fileno())
 
         # load an valid filepath
         self.ui.onecmd('local --path ' + self.testFile + ' --parent /')
 
         # get output
-        driverStdout, driverStderr = self._restore_streams()
+        driverStdout, driverStderr = self.restore_streams()
 
         node = self.vfs.getnode('/')
         # Error must be raised if directory is not plugged to a data module
