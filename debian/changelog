@@ -1,0 +1,5 @@
+dff (0.4.3b-1) karmic; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Julien Lta BALLET <elthariel@gmail.com>  Thu, 11 Mar 2010 00:15:49 +0100
