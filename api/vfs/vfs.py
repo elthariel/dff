@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -17,15 +16,18 @@
 from libvfs import *
 
 class vfs():
+    def __init__(self):
+        self.libvfs = VFS.Get()
+
     def getnode(self, path):
         if not path:
             return self.getcwd()
         if type(path) != type(""):
 	   return path
-        if path and not path[:1] == "/": # Absolute
-            if self.getcwd().path: # Current working node is not a root one
+        if path and not path[:1] == "/":
+            if self.getcwd().path:
                 path = self.getcwd().path + "/" + self.getcwd().name + "/" + path
-            elif self.getcwd().name: # Previous node is a root one
+            elif self.getcwd().name:
                 path = "/" + self.getcwd().name + "/" + path
             else:
                 path = "/" + path
@@ -57,10 +59,7 @@ class vfs():
     def deletenode(self, node):
 	return self.libvfs.DeleteNode(node)
 
-    def __init__(self):
-        self.libvfs = VFS.Get()
-
-    # return a Node's Dictionnary with directory of nodeDir
+       # return a Node's Dictionnary with directory of nodeDir
     def listingDirectories(self, nodeDir):
         if nodeDir == False:
             return False
@@ -99,4 +98,8 @@ class vfs():
                 info['size'] = info['size'] + i.attr.size
         return info
 
-
+    def link(self, node,  dest):
+       VFS.Link(node, dest)
+    
+    def link(self, node, name, dest):
+       Link(node, name, dest) 

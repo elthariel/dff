@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -18,12 +17,10 @@
 import sys,string, os, traceback, types, completion, signal
 import  line_to_arguments
 from cmd import *
-from api.loader import *
-from api.taskmanager import *
-from api.vfs import *
-from api.module.script import *
-from api.taskmanager.taskmanager import *
-from api.module.module import *
+#from api.vfs import *
+#from api.taskmanager.taskmanager import TaskManager 
+from api.manager.manager import ApiManager
+
 from ui.console.complete_raw_input import complete_raw_input
 from ui.history import history
 
@@ -35,11 +32,10 @@ class console(Cmd):
     def __init__(self, completekey='tab', stdin=None, stdout=None):
         Cmd.__init__(self, completekey, stdin, stdout)
         self.history = history()
-        self.vfs = vfs.vfs()
-        self.loader = loader.loader()
-        self.sched = scheduler.sched
+        self.api = ApiManager()
+        self.vfs = self.api.vfs()
+        self.taskmanager = self.api.TaskManager()
 	self.line_to_arguments = line_to_arguments.Line_to_arguments()
-        self.taskmanager = TaskManager()
         self.old_completer = ""
         self.prompt = "dff / > "
         self.intro = "\n##########################################\n\

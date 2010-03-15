@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -18,13 +17,11 @@ from api.module.script import *
 from api.exceptions.libexceptions import *
 from api.vfs import *
 from api.env import *
-from api.loader.libloader import *
-from api.module.libcmodule import *
 from api.vfs.libvfs import *
 import sys
 import traceback
 
-class Module():
+class Module(object):
   def __init__(self, name, icl):
     self.env = env.env() 
     self.cl = icl
@@ -32,17 +29,11 @@ class Module():
     try :
      if issubclass(self.cl, Script):
        self.conf = self.env.libenv.config(name)
+       if self.__doc__:
+	   self.conf.description = self.__doc__
        self.getflags()
     except TypeError:
 	pass
-    try :
-      if isinstance(self.cl, CModule):
-          self.conf = self.cl.conf 
-	  self.flags = self.cl.flags
-	  self.tags = self.cl.tags
-          self.getflags()
-    except TypeError:
-      pass
     try :
       if issubclass(self.cl, fso):
         self.conf = self.env.libenv.config(name)
@@ -79,12 +70,6 @@ class Module():
        return self.cl()
     except TypeError:
 	pass
-    try :
-      if isinstance(self.cl, CModule):
-	   fsobj =  self.cl.getfso()
-	   return fsobj
-    except TypeError:
-      pass
     try :
       if issubclass(self.cl, fso):
         try :

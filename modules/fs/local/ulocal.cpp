@@ -1,19 +1,17 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
  *  Solal Jacob <sja@digital-forensic.org>
- *
  */
 
 #include "local.hpp"
@@ -24,7 +22,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/time.h>
-
+#include <iostream>
+#include <sstream>
+#include <errno.h>
 
 void local::iterdir(Node* dir)
 {
@@ -56,6 +56,7 @@ void local::iterdir(Node* dir)
           {
             attr = new u_attrib(&stbuff);
  	    attr->handle = new Handle(upath);
+	    lpath.push_back(upath); //XXX added for seriz
             if (((stbuff.st_mode & S_IFMT) == S_IFDIR ))
             {
 	      tmp = CreateNodeDir(cnode, dp->d_name, attr);
@@ -74,6 +75,13 @@ void local::iterdir(Node* dir)
     }
     res->add_const("nodes created", total);
 }
+
+local::local()
+{
+  res = new results("local");
+  this->name = "local";
+}
+
 void local::start(argument* ar)
 {
   u_attrib*	attr;
@@ -82,12 +90,21 @@ void local::start(argument* ar)
   struct stat 	stbuff;
   Node*		root;
   Node*		parent;
+  
   arg = ar; 
 
   nfd = 0;
+  
+  try 
+  {
+    arg->get("parent", &parent);
+  }
+  catch (envError e)
+  {
+    parent = VFS::Get().GetNode("/");
+  }
   try 
   { 
-    arg->get("parent", &parent);
     arg->get("path", &tpath);
   }
   catch (envError e)
@@ -103,12 +120,14 @@ void local::start(argument* ar)
     res->add_const("error", "stat: " + std::string(strerror(errno)));    	
     return ;
   }
-  attr = new u_attrib(&stbuff);
+  attr = new u_attrib(&stbuff, (char *)tpath->path.c_str());
   string handle;
   handle += tpath->path;
   attr->handle = new Handle(handle);
+  lpath.push_back(tpath->path); //add for seriz
   if (((stbuff.st_mode & S_IFMT) == S_IFDIR ))
   {
+
     root = CreateNodeDir(parent, path, attr);
     iterdir(root);
   }
@@ -125,7 +144,8 @@ int local::vopen(Handle* handle)
 {
   int n;
   struct stat 	stbuff;
-
+ 
+   
   if ((n = open((handle->name).c_str(), O_RDONLY | O_LARGEFILE)) == -1)
     throw vfsError("local::open error can't open file");
   if (stat((handle->name).c_str(), &stbuff) == -1)
@@ -136,6 +156,29 @@ int local::vopen(Handle* handle)
   return (n);
 }
 
+int	local::vread_error(int fd, void *buff, unsigned int size)
+{
+  unsigned int	pos;
+  int		n;
+  int		toread;
+
+  pos = 0;
+  while (pos < size)
+    {
+      if (size - pos < 512)
+	toread = size - pos;
+      else
+	toread = 512;
+      if ((n = read(fd, ((char*)buff)+pos, toread)) == -1)
+	{
+	  memset(((char*)buff)+pos, 0, toread);
+	  this->vseek(fd, toread, 1);
+	}
+      pos += toread;
+    }
+  return size;
+}
+
 int local::vread(int fd, void *buff, unsigned int size)
 {
   int n;
@@ -143,7 +186,12 @@ int local::vread(int fd, void *buff, unsigned int size)
   n = read(fd, buff, size);
   if (n < 0)
   {
-    throw vfsError("local::vread error read = -1");
+    if (errno == EIO)
+      {
+	return this->vread_error(fd, buff, size);
+      }
+    else
+      throw vfsError("local::vread error read = -1");
   }
   return n;
 }
@@ -161,18 +209,18 @@ int local::vclose(int fd)
 dff_ui64 local::vseek(int fd, dff_ui64 offset, int whence)
 {
  dff_ui64  n = 0;
- 
-  if (whence == 0)
-    whence = SEEK_SET;
-  else if (whence == 1)
-    whence = SEEK_CUR;
-  else if (whence == 2)
-    whence = SEEK_END;
+
+ if (whence == 0)
+   whence = SEEK_SET;
+ else if (whence == 1)
+   whence = SEEK_CUR;
+ else if (whence == 2)
+   whence = SEEK_END;
  n = lseek64(fd, offset, whence);
  if (n == -1)
- {
-   throw vfsError("local::vseek can't seek error " + string(strerror(errno)));
- }
+   {
+     throw vfsError("local::vseek can't seek error " + string(strerror(errno)));
+   }
  return (n);
 }
 
@@ -181,11 +229,12 @@ unsigned int local::status(void)
   return (nfd);
 }
 
+/*
 extern "C" 
 {
   fso* create(void)
   {
-    return (new local(string("local")));
+    return (new local());
   }
     
   void destroy(fso *p)
@@ -200,10 +249,11 @@ extern "C"
     {
      CModule* cmod = new CModule("local", create);
      cmod->conf->add("path", "path");
-     cmod->conf->add("parent", "node");
+//     cmod->conf->add("parent", "node", 1); //mettre a true, tous le mondel le met a /
+     cmod->conf->add("parent", "node"); //mettre a true, tous le mondel le met a /
      cmod->conf->add_const("mime-type", std::string("data"));
      cmod->tags = "fs";
     }
   };
   proxy p;
-}
+}*/

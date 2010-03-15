@@ -1,0 +1,14 @@
+5-fat-daylight.zip/
+5-fat-daylight/
+COPYING-GNU.txt
+daylight.dd/
+index.html
+readme.txt
+Fat/
+Slack
+Base-Tree/
+Deleted-Items
+WINTER.TXT.slack
+WINTER.TXT
+SUMMER.TXT.slack
+SUMMER.TXT

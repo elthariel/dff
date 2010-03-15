@@ -1,31 +1,48 @@
+# DFF -- An Open Source Digital Forensics Framework
+# Copyright (C) 2009-2010 ArxSys
+# This program is free software, distributed under the terms of
+# the GNU General Public License Version 2. See the LICENSE file
+# at the top of the source tree.
+#  
+# See http://www.digital-forensic.org for more information about this
+# project. Please do not directly contact any of the maintainers of
+# DFF for assistance; the project provides a web site, mailing lists
+# and IRC channels for your use.
+# 
+# Author(s):
+#  Frederic Baguelin <fba@digital-forensic.org>
+#  Solal Jacob <sja@digital-forensic.org>
+
+
+FIND_PACKAGE(SWIG REQUIRED)
+INCLUDE(${SWIG_USE_FILE})
+
+include_directories(${PYTHON_INCLUDE_PATH})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_HOME_DIRECTORY}/api/include)
 
 set(shm_srcs
   shm.cpp
+  fdmanager.cpp
 )
 
-add_library(shm SHARED ${shm_srcs})
 
-if (UNIX)
-  target_link_libraries(shm _libloader)
-else (UNIX)
-  target_link_libraries(shm _libloader _libcmodule _libenv _libexceptions _libtype _libvfs)
-endif(UNIX)
+SET_SOURCE_FILES_PROPERTIES(shm.i PROPERTIES CPLUSPLUS ON)
+SWIG_ADD_MODULE(SHM python shm.i ${shm_srcs})
+SWIG_LINK_LIBRARIES(SHM ${PYTHON_LIBRARIES} _libexceptions _libtype _libvfs _libenv)
 
-set_target_properties(shm PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-  SUFFIX ".mod"
-)
-if ( CMAKE_GENERATOR MATCHES "Visual Studio")
-set_target_properties (shm PROPERTIES
-  PREFIX "../" 
-)
-endif ( CMAKE_GENERATOR MATCHES "Visual Studio")
-set(shm_srcs
+set(shm_files
   __init__.py
   touch.py
+  SHM.py
 )
 
-install_file(shm ${shm_srcs})
-install_lib(shm)
+if ( CMAKE_GENERATOR MATCHES "Visual Studio")
+set_target_properties (${SWIG_MODULE_SHM_REAL_NAME} PROPERTIES
+  PREFIX "../"
+  SUFFIX ".pyd"
+)
+endif ( CMAKE_GENERATOR MATCHES "Visual Studio")
+
+install_file(shm ${shm_files})
+install_lib(${SWIG_MODULE_SHM_REAL_NAME})

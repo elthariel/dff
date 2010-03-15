@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -14,28 +13,32 @@
 #  Frederic Baguelin <fba@digital-forensic.org>
 #
 
-from api.vfs import *
-from api.env import *
-from api.loader import *
-from api.type import *
+#from api.vfs import *
+#from api.env import *
+#from api.loader import *
+#XXX type
+#from api.type import *
+from api.manager.manager import ApiManager
 
 import os.path, os
 import dircache
 
 import utils
 
-from types import *
+#from types import *
 
 import re
 
 class Line_to_arguments():
-
     def __init__(self):
-        self.env = env.env()
-        self.loader = loader.loader()
-        self.vfs = vfs.vfs()
-        self.lmodules = self.loader.modules
-
+#        self.env = env.env()
+#        self.loader = loader.loader()
+#        self.vfs = vfs.vfs()
+        self.api = ApiManager()
+        self.env = self.api.env()
+        self.argument = self.api.argument
+        self.loader = self.api.loader()
+        self.vfs = self.api.vfs()
 
     def generate(self, line):
         self.args, bopt = utils.split_line(line)
@@ -52,7 +55,7 @@ class Line_to_arguments():
                 cmd.append(a)
         cmds.append(cmd)
         for cmd in cmds:
-            gen_arg = self.env.libenv.argument("input")
+            gen_arg = self.argument("input")
             gen_arg.thisown = 0
             if (self.string_to_arguments(cmd, gen_arg) != -1):
                 exc = {}
@@ -74,7 +77,6 @@ class Line_to_arguments():
         else:
 	    value = value.replace("\ ", " ")
             node = self.vfs.getnode(value)
-
         if node != None:
             gen_arg.add_node(key, node)
         else:
@@ -91,12 +93,13 @@ class Line_to_arguments():
         else:
             value = value.replace("\ ", " ")
             abs_path = utils.get_absolute_path(value)
-
-        print abs_path
+#XXX print ?
+        #print abs_path
         if os.path.exists(abs_path):   
-            path = libtype.Path(str(abs_path))
-            path.thisown = False
-            gen_arg.add_path(key, path)
+#            path = self.api.Path(str(abs_path))
+#            path.thisown = False
+#            gen_arg.add_path(key, path)
+             gen_arg.add_path(key, str(abs_path))
         else:
             print "Value error: local path <", value, "> doesn't exist"
             res = -1
@@ -138,12 +141,10 @@ class Line_to_arguments():
     def get_func_generator(self, cdl):
         func_name = cdl.type + "_to_argument"
         func = None
-
         if hasattr(self, func_name):
             func = getattr(self, func_name)
         else:
             print "Type error: type <", cdl.type, "> associated to argument <", cdl.name, "> doesn't exist"
-
         return func
         
 
@@ -153,6 +154,7 @@ class Line_to_arguments():
         i = 0
         needs_no_key = utils.needs_no_key(cdl)
         arg_with_no_key = utils.get_arg_with_no_key(args)
+        #print args
         while i != (len(cdl)) and res == 0:
             func = self.get_func_generator(cdl[i])
             if func != None:
@@ -167,11 +169,11 @@ class Line_to_arguments():
                             print "Argument error: the argument <", cdl[i].name, "> is required by command: <", args[0], ">"
                             res = -1
                     else:
-                        if arg_with_no_key != -1:
-                            value = args[arg_with_no_key]
-                            res = func(cdl[i].name, value, gen_arg)
-                        else:# cdl[i].type == "node" or cdl[i].type == "path":
-                            res = func(cdl[i].name, None, gen_arg)
+                        #if arg_with_no_key != -1:
+                        #    value = args[arg_with_no_key]
+                        #    res = func(cdl[i].name, value, gen_arg)
+                        #else:# cdl[i].type == "node" or cdl[i].type == "path":
+                        res = func(cdl[i].name, None, gen_arg)
                 else:
                     key_idx = args.index(key)
                     if cdl[i].type == "bool":
@@ -191,23 +193,19 @@ class Line_to_arguments():
         return res
 
     def string_to_arguments(self, args, gen_arg):
-        try:
- 	  mod =  self.loader.modules[args[0]]
-        except :
-	  try:
+	try:
+          if not self.loader.is_modules(args[0])  :
             print "dff:" +  args[0] + ": command not found"
-          except IndexError:
+        except IndexError: 
             return -1
-          return -1
-        conf = mod.conf
-
+        #mod = self.loader.get_modules(args[0])
+        conf = self.loader.get_conf(args[0]) 
+       # conf = mod.conf
         if conf != None:
             cdl = conf.descr_l
             if cdl == None:
                 return gen_arg
-
             res = self.several_argument(cdl, args, gen_arg)
-
             if res == -1:
                 return -1
             else:

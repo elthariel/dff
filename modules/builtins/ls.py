@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -38,15 +37,17 @@ class LS(Script):
        self.ls(self.node)
 
   def recurse(self, cur_node):
-     if not cur_node.next.empty():
+     if not cur_node.empty_child():
 	 self.ls(cur_node)
+     #next = cur_node.next()
      next = cur_node.next
      for next_node in next:
-       if not next_node.next.empty():
+       if not next_node.empty_child():
          self.recurse(next_node)
 
   def ls(self, node):
      buff = ""
+     #next = node.next()
      next = node.next
      for n in next:
         print self.display_node(n)
@@ -59,7 +60,7 @@ class LS(Script):
 
   def display_node_long(self, node):
     buff = node.path + '/' + node.name
-    if not node.next.empty():
+    if not node.empty_child():
       buff += "/" 
     if node.is_file:
       buff += '\t' + str(node.attr.size)
@@ -68,7 +69,7 @@ class LS(Script):
   def display_node_simple(self, node):
     buff = ''	
     buff = node.name
-    if not node.next.empty():
+    if not node.empty_child():
      buff += "/"
     return buff
 

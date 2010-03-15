@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -205,7 +204,6 @@ class ShellView(QTextEdit, console):
     def keyPressEvent(self, e):
         text  = e.text()
         key   = e.key()
-
 	try:	
 	  if self.taskmanager.current_proc:
 	    if key == Qt.Key_Z and ord(str(text[0])) == 26:
@@ -362,14 +360,23 @@ class ShellView(QTextEdit, console):
         else:
             return (self.fgcolor)
 
-class Shell(QDockWidget):
+class MDockWidget(QDockWidget):
     def __init__(self, mainWindow):
-        QDockWidget.__init__(self)
+        QDockWidget.__init__(self, mainWindow)
+        self.init()
+        self.show()
+
+    def init(self):
+        self.setAllowedAreas(Qt.AllDockWidgetAreas)
+
+class Shell(MDockWidget):
+    def __init__(self, mainWindow):
+        MDockWidget.__init__(self, mainWindow)
         self.__mainWindow = mainWindow
         self.icon = QIcon(":shell.png")
         self.addAction(mainWindow)
         self.g_display()
-        
+
     def g_display(self):
         self.setWidget(ShellView(self))
         self.setWindowTitle(QApplication.translate("Shell", "Shell", None, QApplication.UnicodeUTF8))
@@ -390,3 +397,8 @@ class Shell(QDockWidget):
         else :
             self.setVisible(False)
             self.__action.setChecked(False)
+
+
+
+#    self.setWindowTitle(n)
+#    self.setWidget(widget)

@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -21,6 +20,7 @@ from PyQt4.QtCore import Qt
 
 from mainWindow import DFF_MainWindow
 from configuration.Translator import DFF_Translator
+from api.loader.loader import loader
 
 # import Resource QT
 import gui_rc
@@ -29,16 +29,19 @@ class gui():
     def __init__(self):
         """Launch GUI"""
         #translator = DFF_Translator()
-        app = QApplication(sys.argv)
+        self.app = QApplication(sys.argv)
         #app.installTranslator(translator)
         pixmap = QPixmap(":splash.png")
-        splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
-        splash.setMask(pixmap.mask()) # this is usefull if the splashscreen is not a regular ractangle...
-        splash.show()
-        #splash.showMessage("test")
+        self.splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
+        self.splash.setMask(pixmap.mask()) 
 
-        mainWindow = DFF_MainWindow(app)
+    def launch(self, modPath):
+        self.splash.show()
+        self.loader = loader()
+        self.loader.do_load(modPath, self.splash.showMessage)
+        mainWindow = DFF_MainWindow(self.app)
         mainWindow.show()
 
-        splash.finish(mainWindow)
-        sys.exit(app.exec_())
+        self.splash.finish(mainWindow)
+        sys.exit(self.app.exec_())
+

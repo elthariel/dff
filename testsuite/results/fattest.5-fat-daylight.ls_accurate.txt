@@ -1,0 +1,14 @@
+/5-fat-daylight.zip/	11034
+/5-fat-daylight.zip/5-fat-daylight/	0
+/5-fat-daylight.zip/5-fat-daylight/COPYING-GNU.txt	18009
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/	1474560
+/5-fat-daylight.zip/5-fat-daylight/index.html	2499
+/5-fat-daylight.zip/5-fat-daylight/readme.txt	419
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/Fat/	0
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/Fat/Slack	0
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/Fat/Base-Tree/	0
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/Fat/Deleted-Items	0
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/Fat/Base-Tree/WINTER.TXT.slack	504
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/Fat/Base-Tree/WINTER.TXT	8
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/Fat/Base-Tree/SUMMER.TXT.slack	504
+/5-fat-daylight.zip/5-fat-daylight/daylight.dd/Fat/Base-Tree/SUMMER.TXT	8

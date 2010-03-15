@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -168,15 +167,16 @@ class Info(QDockWidget):
 	        itemListRes = QTreeWidgetItem(itemModule)
 	        self.itemListResDic[mod] = itemListRes
 	        itemListRes.setText(0, "Results")
-	     for type, name, val in self.env.get_val_map(proc.res.val_m):
-               try:
-	         itemResKey = self.itemResDic[(type, name, val)]  		
-	       except KeyError:
-	         itemResKey = QTreeWidgetItem(itemListRes)    
-	         self.itemResDic[(type, name, val)] = itemResKey	
-	         itemResKey.setText(1, name)
-	         itemResKey.setText(2, val)
-	         itemResKey.setText(4, type)
+             if proc.res:
+	      for type, name, val in self.env.get_val_map(proc.res.val_m):
+                try:
+	          itemResKey = self.itemResDic[(type, name, val)]  		
+	        except KeyError:
+	          itemResKey = QTreeWidgetItem(itemListRes)    
+	          self.itemResDic[(type, name, val)] = itemResKey	
+	          itemResKey.setText(1, name)
+	          itemResKey.setText(2, val)
+	          itemResKey.setText(4, type)
 	          		    	 	    		
     def deleteInfoModule(self):
 	self.treeModule.clear()

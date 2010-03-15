@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -40,6 +39,9 @@ class CAT(QTextEdit, Script):
     self.setReadOnly(1)
     self.append(self.buff)
 
+  def updateWidget(self):
+	pass
+
   def cat(self, args):
     file = self.node.open()
     fsize = self.node.attr.size
@@ -49,8 +51,11 @@ class CAT(QTextEdit, Script):
       try:
        tmp = file.read(4096)
       except vfsError, e:
-        file.close()
-        return self.buff
+        print self.buff
+        break
+      if len(tmp) == 0:
+        print tmp
+        break         
       size += len(tmp)
       self.buff += tmp
       print tmp
@@ -64,5 +69,9 @@ class cat(Module):
 ex:cat /myfile.txt"""
     Module.__init__(self, "cat", CAT)
     self.conf.add("file", "node")
+    self.conf.add_const("mime-type", "HTML")
+    self.conf.add_const("mime-type", "ASCII")
+    self.conf.add_const("mime-type", "XML")
+    self.conf.add_const("mime-type", "text")
     self.tags = "viewer"
     self.flags = ["console", "gui"]	

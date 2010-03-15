@@ -1,24 +1,23 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
  *  Solal J. <sja@digital-forensic.org>
- *
  */
 
 %module(package="api.vfs",docstring="libvfs: c++ generated inteface", directors="1") libvfs 
 %feature("autodoc", 1); //1 = generate type for func proto, no work for typemap
 %feature("docstring");
+
 %feature("director") fso;
 
 %feature("director:except") fso 
@@ -36,6 +35,7 @@
 %include "std_except.i"
 %include "windows.i"
 
+%import "../exceptions/libexceptions.i"
 %catches(vfsError) Node::open(void);
 %catches(vfsError) VFile::read(void);
 %catches(vfsError) VFile::read(unsigned int size);
@@ -46,27 +46,29 @@
 %catches(vfsError) VFile::seek(dff_ui64 offset,char *chwence);
 %catches(vfsError) VFile::seek(dff_ui64 offset);
 %catches(vfsError) VFile::tell(void);
-//%catches(vfsError) fso::vread(int fd, void* buff, unsigned int size);
-%catches(envError) fso::start(argument* args);
-%catches(vfsError) fso::start(argument* args);
+%catches(envError) fso::start(argument* args); fso::vopen(Handle *handle); Node::open(void);
+%catches(vfsError) fso::start(argument* args); fso::vopen(Handle *handle); Node::open(void);
+%catches(vfsError) fso::vopen(Handle *handle);
 
-%exception start 
+%feature("director") fso::__getstate__;
+
+%exception start
 {
    try
    {
        SWIG_PYTHON_THREAD_BEGIN_ALLOW;
-     $action 
+       $action 
        SWIG_PYTHON_THREAD_END_ALLOW;
    }
    catch (Swig::DirectorException e) 
    {
      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      SWIG_fail; 
+     SWIG_fail; 
      SWIG_PYTHON_THREAD_END_BLOCK;
    }
 }
 
-%exception 
+%exception open 
 {
     try 
     { 
@@ -93,6 +95,7 @@
     }
 }
 
+
 typedef unsigned long long dff_ui64; 
 
 %typemap(directorargout) (void *buff , unsigned int size)   
@@ -106,6 +109,7 @@ typedef unsigned long long dff_ui64;
   $result = PyString_FromStringAndSize((const char *)$1->buff, $1->len);
   free($1->buff);
 }
+
 %typemap(in) PyObject* pyfunc
 {
   if (!PyCallable_Check($input))
@@ -118,15 +122,15 @@ typedef unsigned long long dff_ui64;
 
 %{
   #include "export.hpp"
-  #include "node.hpp"
   #include "vfs.hpp"
+  #include "node.hpp"
   #include "fso.hpp"
   #include "vfile.hpp"
 
   static void PythonCallBack(void *data, Node* pnode)
   {
     PyObject *func, *arglist;
-    PyObject *result;
+    PyObject *result = NULL;
 
     SWIG_PYTHON_THREAD_BEGIN_BLOCK;
     func = (PyObject *) data;
@@ -142,11 +146,25 @@ typedef unsigned long long dff_ui64;
 
     return ;
   }
+
+ static PyObject* __CBgetstate__(void* data)
+ {
+    PyObject *func, *result = NULL;
+
+    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+    func = (PyObject *) data;
+    result = PyEval_CallObject(func, NULL);
+    fflush(stdout); 
+    SWIG_PYTHON_THREAD_END_BLOCK;
+    if (!result)
+      return NULL;   
+    return result;
+  }
 %}
 
 %include "../include/export.hpp"
-%include "../include/node.hpp"
 %include "../include/vfs.hpp"
+%include "../include/node.hpp"
 %include "../include/fso.hpp"
 %include "../include/vfile.hpp"
 
@@ -154,6 +172,7 @@ namespace std
 {
   %template(ListNode)     list<Node*>;
   %template(SetNode)      set<Node *>;
+  %template(Listui64) list<dff_ui64>;
 };
 %newobject VFile::read;
 %newobject VFile::argument;
@@ -167,3 +186,22 @@ namespace std
   }
 };
 
+%extend fso 
+{
+ void set_getstate(PyObject *pyfunc)
+ {
+   self->SetCallBack(__CBgetstate__, (void*)pyfunc);
+   Py_INCREF(pyfunc);
+ } 
+};
+
+
+%extend Node
+{
+%pythoncode
+%{
+def __iter__(self):
+  for node in self.next:  
+     yield node
+%}
+};

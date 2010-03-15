@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -21,7 +20,6 @@ import os
 def get_arg_with_no_key(args):
     found = False
     res = -1
-
     for arg in args:
         if not arg.startswith("--") and not arg.startswith("-"):
             idx = args.index(arg)
@@ -32,20 +30,19 @@ def get_arg_with_no_key(args):
 
 
 def needs_no_key(cdl):
-    res = None
-    
+    priority = {0: [], 1: []}
+
     for i in range(len(cdl)):
-        if cdl[i].type == "node" or cdl[i].type == "path":
-            if res == None:
-                res = cdl[i]
-            else:
-                return None
-        elif cdl[i].optional == False:
-            if res != None:
-                return None
-            else:
-                res = cdl[i]
-    return res
+        if cdl[i].optional == False:
+            priority[0].append(cdl[i])
+        elif cdl[i].type in ["path", "node"]:
+            priority[1].append(cdl[i])
+    if len(priority[0]) == 1:
+        return priority[0][0]
+    elif len(priority[1]) == 1:
+        return priority[1][0]
+    else:
+        return None
 
 
 def split_line(line):

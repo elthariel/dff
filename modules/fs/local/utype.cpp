@@ -1,20 +1,19 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
  *  Solal Jacob <sja@digital-forensic.org>
- *
  */
+
 
 #include "utype.hpp"
 
@@ -49,8 +48,42 @@ tm* u_vtime::get_tm(void)
 
 u_attrib::u_attrib(struct stat  *st)
 {
-  size  = (dff_ui64)st->st_size;
+  if (((st->st_mode & S_IFMT) == S_IFDIR))
+    size = 0;
+  else
+    size  = (dff_ui64)st->st_size;
+  time["accessed"] = new u_vtime(gmtime(&st->st_atime));
+  time["modified"] = new u_vtime(gmtime(&st->st_mtime));
+  time["changed"] = new u_vtime(gmtime(&st->st_ctime));
+  imap["block-size"] = st->st_blksize; 
+  imap["blocks"] = st->st_blocks;
+}
 
+u_attrib::u_attrib(struct stat  *st, char *path)
+{
+  int	fd;
+  unsigned long	numsectors;
+
+  if (S_ISBLK(st->st_mode))
+    {
+      if ((fd = open(path, O_RDONLY | O_LARGEFILE)) == -1)
+	;
+      else
+	{
+	  if (ioctl(fd, BLKGETSIZE, &numsectors) < 0)
+	    ;
+	  else
+	      size = (dff_ui64)numsectors * 512;
+	  close(fd);
+	}
+    }
+  else
+  { 
+    if (((st->st_mode & S_IFMT) == S_IFDIR))
+      size = 0;
+    else
+      size  = (dff_ui64)st->st_size;
+  }
   time["accessed"] = new u_vtime(gmtime(&st->st_atime));
   time["modified"] = new u_vtime(gmtime(&st->st_mtime));
   time["changed"] = new u_vtime(gmtime(&st->st_ctime));

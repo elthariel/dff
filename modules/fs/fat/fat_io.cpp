@@ -1,19 +1,17 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
  *  Frederic Baguelin <fba@digital-forensic.org>
- *
  */
 
 #include "fat.hpp"
@@ -22,7 +20,10 @@ int	Fat::Open()
 {
   try 
   {
+     if (!ParentNode)
+        ParentNode = VFS::Get().GetNode(ParentNodePath);
       File = ParentNode->open();
+      ParentNodePath = ParentNode->path + "/" + ParentNode->name;  
   }
   catch(vfsError e)
     {
@@ -35,6 +36,12 @@ int	Fat::Read(void *buff, unsigned int size)
 {
   try 
     {
+        //check if !ParentNode bye bye...
+      if (!File)  
+      { 
+        ParentNode = VFS::Get().GetNode(ParentNodePath);
+        File = ParentNode->open();
+      }
       return (File->read(buff, size));
     }
   catch(vfsError e)
@@ -48,6 +55,11 @@ dff_ui64	Fat::Seek(dff_ui64 offset)
 {
   try
     {
+      if (!File)  
+      { 
+        ParentNode = VFS::Get().GetNode(ParentNodePath);
+        File = ParentNode->open();
+      }
       offset = File->seek(offset);
       return (offset);
     }
@@ -61,6 +73,11 @@ dff_ui64	Fat::Seek(dff_ui64 offset, int whence)
 {
   try
     {
+      if (!File)  
+      { 
+        ParentNode = VFS::Get().GetNode(ParentNodePath);
+        File = ParentNode->open();
+      }
       offset = File->seek(offset, whence);
       return (offset);
     }
@@ -74,12 +91,15 @@ int	Fat::Close()
 {
   try
     {
+      if (!File) 
+        return 0; 
       File->close();
     }
   catch(vfsError e)
     {
       throw vfsError("Fat::Close throw\n" + e.error);
     }
+  return 0;
 }
 
 int	Fat::vopen(Handle *handle)
@@ -96,9 +116,9 @@ int	Fat::vopen(Handle *handle)
       if (fi != NULL)
 	{
 	  fd = new FDInfo;
-	  fd->fdata = (void*)fi;
+	  fd->fdata = fi;
 	  fd->current = 0;
-	  i = fdm.AllocFD(fd);
+	  i = fdm->AllocFD(fd);
 	  return (i);
 	}
       else
@@ -126,7 +146,7 @@ int	Fat::vread(int fd, void *buff, unsigned int size)
   FileInfo	*fi;
 
   TotalBytesRead = 0;
-  vfd = fdm.GetFDInfo(fd);
+  vfd = fdm->GetFDInfo(fd);
   if (vfd != NULL)
     {
       fi = (FileInfo*)vfd->fdata;
@@ -176,11 +196,7 @@ int	Fat::vread(int fd, void *buff, unsigned int size)
 		  try
 		    {
 		      Seek(RealOffset);
-		      void *buffer = malloc(sizeof(char) * real_size);
-		      memset(buffer, '\0', real_size);
-		      BytesRead = Read(buffer, real_size);
-		      CopyBuffer((char*)buff, (char*)buffer, TotalBytesRead, BytesRead);
-		      free(buffer);
+		      BytesRead = Read(((char *)buff) + TotalBytesRead, real_size);
 		      if (BytesRead == 0)
 			return (TotalBytesRead);
 		      TotalBytesRead += BytesRead;
@@ -207,7 +223,7 @@ int	Fat::vclose(int fd)
 {
   FileInfo *fi;
 
-  fdm.ClearFD(fd);
+  fdm->ClearFD(fd);
   return 0;
 }
 
@@ -216,7 +232,7 @@ dff_ui64	Fat::vseek(int fd, dff_ui64 offset, int whence)
   FDInfo *vfd;
   FileInfo	*fi;
 
-  vfd = fdm.GetFDInfo(fd);
+  vfd = fdm->GetFDInfo(fd);
   fi = (FileInfo*)vfd->fdata;
   if (whence == 0)
     if (offset < fi->size)

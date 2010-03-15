@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -23,6 +22,7 @@ class UNXOR(Script):
   def __init__(self):
     Script.__init__(self, "unxor")
     self.vfs = vfs.vfs()
+    self.touch = TOUCH().touch
 
   def start(self, args):
     file = args.get_node('file')
@@ -31,11 +31,9 @@ class UNXOR(Script):
     self.res.add_const("result", res)
 
   def unxor(self, node, key):
-    o = TOUCH()
     dfilename = node.path + "/" + node.name +  "/decrypted"
-    o.touch(dfilename) 
+    dfile = self.touch(dfilename).open()
     file = node.open()
-    dfile = self.vfs.open(dfilename)
     decrypt = ""
     ki = 0
     try:
@@ -63,4 +61,4 @@ ex: unxor /myfile key"""
     Module.__init__(self, "unxor", UNXOR)
     self.conf.add("file", "node")  
     self.conf.add("key", "string")
-    self.tags = "parser"
+    self.tags = "crypto"
