@@ -3,12 +3,12 @@
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-#  
+#
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
 # and IRC channels for your use.
-# 
+#
 # Author(s):
 #  Christophe Malinge <cma@digital-forensic.org>
 #  Solal Jacob <sja@digital-forensic.org>
@@ -35,7 +35,7 @@ if(UNIX)
     message(STATUS "Will use -g for debugging -- no")
   else(ENABLE_DEBUG)
 #change flag here
-    add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -O2) 
+    add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -O2)
     message(STATUS "Will use -g for debugging -- yes")
   endif(ENABLE_DEBUG)
 endif(UNIX)
@@ -125,7 +125,7 @@ macro(install_file target_name)
 	  ${PYTHON_SITE_PACKAGES_PATH}/${CMAKE_PROJECT_NAME}/${rel}
 	)
     ENDIF (INSTALL)
-  endforeach(file ${ARGN}) 
+  endforeach(file ${ARGN})
 endmacro(install_file target_name)
 
 ## Macro to copy lib at install
@@ -160,9 +160,9 @@ SET(CPACK_SET_DESTDIR "ON")
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Digital Forensics Framework")
 SET(CPACK_PACKAGE_VENDOR "ArxSys")
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ressources/ReadMe.txt")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/ressources/Copyright.txt")
-SET(CPACK_PACKAGE_VERSION_MAJOR "0") 
+SET(CPACK_PACKAGE_VERSION_MAJOR "0")
 SET(CPACK_PACKAGE_VERSION_MINOR "5")
 SET(CPACK_PACKAGE_VERSION_PATCH "0")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "DFF")
@@ -179,13 +179,13 @@ IF(WIN32 AND NOT UNIX)
   SET(CPACK_NSIS_MODIFY_PATH OFF)
   SET(CPACK_NSIS_COMPRESSOR "/SOLID lzma")
   SET(CPACK_GENERATOR "NSIS")
-  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS       
+  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
     "
      SetOutPath \\\"$INSTDIR\\\\dff\\\"
-     CreateShortCut \\\"$DESKTOP\\\\DFF (shell).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\" 
-     CreateShortCut \\\"$DESKTOP\\\\DFF (gui).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff-gui.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"  
-     CreateShortCut \\\"$SMPROGRAMS\\\\Digital Forensics Framework\\\\DFF (shell).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"  
-     CreateShortCut \\\"$SMPROGRAMS\\\\Digital Forensics Framework\\\\DFF (gui).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff-gui.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"  
+     CreateShortCut \\\"$DESKTOP\\\\DFF (shell).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"
+     CreateShortCut \\\"$DESKTOP\\\\DFF (gui).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff-gui.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"
+     CreateShortCut \\\"$SMPROGRAMS\\\\Digital Forensics Framework\\\\DFF (shell).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"
+     CreateShortCut \\\"$SMPROGRAMS\\\\Digital Forensics Framework\\\\DFF (gui).lnk\\\" \\\"$INSTDIR\\\\dff\\\\dff-gui.py\\\" \\\"\\\" \\\"$INSTDIR\\\\dff\\\\ressources\\\\dff.ico\\\"
     ")
 
   if (WINALL)
@@ -198,7 +198,7 @@ IF(WIN32 AND NOT UNIX)
       "
        MessageBox MB_YESNO \\\"Install Python 2.6.4 ? \\\" /SD IDYES IDNO endPython
         ExecWait '\\\"msiexec\\\" /i \\\"Prerequisites\\\\python-2.6.4.msi\\\" /passive'
-        Goto endPython   
+        Goto endPython
        endPython:
         MessageBox MB_YESNO \\\"Install PyQt 4.7-1 ? \\\" /SD IDYES IDNO endPyQt
         ExecWait '\\\"Prerequisites\\\\PyQt-Py2.6-gpl-4.7-1.exe\\\"'
@@ -215,7 +215,7 @@ IF(WIN32 AND NOT UNIX)
 
 ELSE(WIN32 AND NOT UNIX)
   SET(CPACK_SOURCE_GENERATOR "TGZ")
-#  SET(CPACK_SOURCE_IGNORE_FILES "") 
+#  SET(CPACK_SOURCE_IGNORE_FILES "")
   SET(CPACK_GENERATOR "DEB" "RPM")
 ENDIF(WIN32 AND NOT UNIX)
 
