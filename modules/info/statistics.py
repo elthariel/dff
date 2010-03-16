@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -33,17 +32,9 @@ class STATISTICS(Script):
     self.res.add_const("result", res)
 
   def getstat(self, node):
- #   if filename :
-  #      while filename[-1:] == "/" and len(filename) > 1:
-   #         filename = filename[-1:]
-    #    path = self.vfs.getnode(filename)
-#    else:
- #       path = self.vfs.getcwd()
-  #      filename = path.path + "/" + path.name
-#    if not path:
- #       return "Path not found"
     if node.is_file: 
-      file_type = self.ftype.gettype(node) 
+      self.ftype.filetype(node) 
+      file_type = node.attr.smap["mime-type"]
       if file_type not in self.dtype:
         self.dtype[file_type] = 1
       else:
@@ -68,6 +59,6 @@ ex: statistics
 ex: statistics /mydump/"""
     Module.__init__(self, "statistics", STATISTICS)
     self.conf.add('parent', 'node')
-    self.tags = "info"
+    self.tags = "information"
 
 

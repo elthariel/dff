@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -15,16 +14,18 @@
 # 
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4.QtCore import Qt, QSize, QString, SIGNAL, QThread
+from PyQt4.QtGui import QPixmap, QImage, QPushButton, QLabel, QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QIcon, QMatrix
 
 from api.vfs import *
 from api.module.module import *
 from api.module.script import *
+from api.magic.filetype import FILETYPE
 
 import sys
-
 import time
+import re
+
 
 class QRotateButton(QPushButton):
   def __init__(self, angle, icon):
@@ -47,17 +48,128 @@ class QZoomButton(QPushButton):
     self.emit(SIGNAL("zoomed"), self.zoom)
 
 
+class LoadedImage(QLabel):
+  def __init__(self):
+    QLabel.__init__(self)
+    #self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+    self.node = None
+    self.angle = 0
+    self.factor = 1
+    self.imgWidth = 0
+    self.baseImage = QImage()
+    self.cpixmap = QPixmap()
+    self.matrix = QMatrix()
+
+
+  def load(self, node, type):
+    self.node = node
+    file = self.node.open()
+    buff = file.read()
+    file.close()
+    self.baseImage.loadFromData(buff, type)
+
+
+  def adjust(self, imgwidth):
+    self.imgWidth = imgwidth
+    self.currentImage = self.baseImage.scaled(QSize(self.imgWidth, self.imgWidth), Qt.KeepAspectRatio, Qt.FastTransformation)
+    self.setPixmap(QPixmap.fromImage(self.currentImage))
+    self.adjustSize()
+
+
+  def resize(self, zoomer):
+    w = self.currentImage.width() * zoomer
+    self.currentImage = self.baseImage.scaled(QSize(w, w), Qt.KeepAspectRatio, Qt.FastTransformation)
+    self.setPixmap(QPixmap.fromImage(self.currentImage))
+    self.adjustSize()
+
+
+  def rotate(self, angle):
+    matrix = QMatrix()
+    matrix.rotate(angle)
+    self.currentImage = self.currentImage.transformed(matrix)
+    self.baseImage = self.baseImage.transformed(matrix)
+    self.setPixmap(QPixmap.fromImage(self.currentImage))
+    self.adjustSize()
+
+
+  def fitbest(self):
+    self.currentImage = self.baseImage.scaled(QSize(self.imgWidth, self.imgWidth), Qt.KeepAspectRatio, Qt.FastTransformation)
+    self.setPixmap(QPixmap.fromImage(self.currentImage))
+    self.adjustSize()
+
+
+  def notSupported(self):
+    #self.setPixmap(None)
+    self.setText("Format Not Supported")
+    self.adjustSize()
+
+class Metadata(QWidget):
+  def __init__(self):
+    QWidget.__init__(self)
+
+
+import time
+
+
+#class SortImages(QThread):
+#  def __init__(self):
+#    QThread.__init__(self)
+#    self.images = {}
+#    self.ft = FILETYPE()
+#    self.reg_viewer = re.compile(".*(JPEG|JPG|jpg|jpeg|GIF|gif|bmp|BMP|png|PNG|pbm|PBM|pgm|PGM|ppm|PPM|xpm|XPM|xbm|XBM).*", re.IGNORECASE)
+
+
+#  def getImageType(self, node):
+#    type = None
+
+#    if node.attr.size != 0:
+#      map = node.attr.smap
+#      try:
+        #XXX temporary patch for windows magic
+#        f = node.attr.smap["type"]
+#      except IndexError:
+#        #XXX temporary patch for windows magic
+#        self.ft.filetype(node)
+#        f = node.attr.smap["type"]
+#        res = self.reg_viewer.match(f)
+#        if res != None:
+#          type = f[:f.find(" ")]
+#    return type
+
+
+#  def setFolder(self, folder):
+#    self.folder = folder
+#    self.images = {}
+
+
+#  def run(self):
+#    self.images = {}
+#    for node in self.folder:
+#      type = self.getImageType(node)
+#      if type != None:
+#        self.images[node] = type
+
+
 class ImageView(QWidget, Script):
   def __init__(self):
     Script.__init__(self, "viewerimage")
     self.type = "imageview"
     self.icon = None
-  
+    self.vfs = vfs.vfs()
+    self.ft = FILETYPE()
+    self.reg_viewer = re.compile(".*(JPEG|JPG|jpg|jpeg|GIF|gif|bmp|BMP|png|PNG|pbm|PBM|pgm|PGM|ppm|PPM|xpm|XPM|xbm|XBM).*", re.IGNORECASE)
+    self.loadedImage = LoadedImage()
+    self.sceneWidth = 0
+    #self.sorter = SortImages()
+
+
   def start(self, args):
     self.node = args.get_node("file")
-    file = self.node.open()
-    self.buff = file.read()
-    file.close()
+    self.curnode = self.node
+    #self.parent = self.node.parent
+    #self.sorter.setFolder(self.parent)
+    #self.sorter.start()
+    #self.getImage()
 
 
   def createMenuItems(self):
@@ -66,27 +178,88 @@ class ImageView(QWidget, Script):
     self.rotate180button = QRotateButton(180, ":rotate-180.png")
     self.zoomin = QZoomButton(float(1.25), ":zoom-in.png")
     self.zoomout = QZoomButton(float(0.8), ":zoom-out.png")
-    #self.fitbest = QPushButton("fitbest")
+    self.fitbest = QPushButton("fitbest")
+    #self.previous = QPushButton("previous")
+    #self.next = QPushButton("next")
 
     self.connect(self.l90button, SIGNAL("clicked"), self.rotate)
     self.connect(self.r90button, SIGNAL("clicked"), self.rotate)
     self.connect(self.rotate180button, SIGNAL("clicked"), self.rotate)
     self.connect(self.zoomin, SIGNAL("zoomed"), self.zoom)
     self.connect(self.zoomout, SIGNAL("zoomed"), self.zoom)
-    #self.connect(self.fitbest, SIGNAL("clicked()"), self.fitBest)
+    self.connect(self.fitbest, SIGNAL("clicked()"), self.fitbestgeom)
+    #self.connect(self.previous, SIGNAL("clicked()"), self.setPreviousImage)
+    #self.connect(self.next, SIGNAL("clicked()"), self.setNextImage)
 
 
   def drawMenu(self):
     self.hbox = QHBoxLayout()
-
     self.setLayout(self.vbox)
     self.hbox.addWidget(self.l90button)
     self.hbox.addWidget(self.r90button)
     self.hbox.addWidget(self.rotate180button)
     self.hbox.addWidget(self.zoomin)
     self.hbox.addWidget(self.zoomout)
-    #self.hbox.addWidget(self.fitbest)
+    #self.hbox.addWidget(self.previous)
+    #self.hbox.addWidget(self.next)
+    self.hbox.addWidget(self.fitbest)
     self.vbox.addLayout(self.hbox)
+
+  
+  #def getIdx(self):
+  #  idx = 0
+  #  res = -1
+  #  for node in self.parent.next:
+  #    if node.name == self.node.name:
+  #      res = idx
+  #    idx += 1
+  #  return res
+
+
+
+  #type: 0 = forward, 1 = backward
+  #def getImage(self, type=1):
+  #  pass
+    #idx = self.parent.next.(self.curnode)
+    #print nodes
+    #for node in self.parent.next[self.idx:]:
+    #  type = getImageType(node)
+    #  if type != None:
+    #self.setImage()
+    
+
+  #def setPreviousImage(self):
+  #  if self.idx == 0:
+  #    self.idx = len(self.parent.next)
+  #    self.node = self.parent.next[self.idx]
+  #  else:
+  #    self.idx -= 1
+  #    self.node = self.parent.next[self.idx]
+  #  self.setImage()
+
+
+  #def setNextImage(self):
+  #  pass
+
+
+  def setImage(self):
+    if self.node.attr.size != 0:
+      map = self.node.attr.smap
+      try:
+        #XXX temporary patch for windows magic
+        f = self.node.attr.smap["type"]
+      except IndexError:
+        #XXX temporary patch for windows magic
+        self.ft.filetype(node)
+        f = self.node.attr.smap["type"]
+    res = self.reg_viewer.match(f)
+    if res != None:
+      type = f[:f.find(" ")]
+      self.loadedImage.load(self.node, type)
+    else:
+      self.loadedImage.notSupported()
+      #not supported format
+      #self.loadedImage.notSupported()
 
 
   def g_display(self):
@@ -94,59 +267,18 @@ class ImageView(QWidget, Script):
     self.factor = 1
     self.vbox = QVBoxLayout()
     self.setLayout(self.vbox)
-    self.imageLabel = QLabel()
-    #self.imageLabel.setBackgroundRole(QPalette.Dark)
-    self.imageLabel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
     self.scrollArea = QScrollArea()
-    #self.scrollArea.setBackgroundRole(QPalette.Dark)
-    self.scrollArea.setWidget(self.imageLabel)
+    self.scrollArea.setWidget(self.loadedImage)
     self.scrollArea.setAlignment(Qt.AlignCenter)
-    self.orig_pixmap = QPixmap()
-    self.orig_pixmap.loadFromData(self.buff)
-    self.matrix = QMatrix()
-    self.imageLabel.setPixmap(self.orig_pixmap)
-    self.imageLabel.adjustSize()
-    #self.fitBest()
     self.vbox.addWidget(self.scrollArea)
     self.createMenuItems()
     self.drawMenu()
-
-
-  def fitBest(self):
-    #self.factor = 1
-    pixmap = None
-
-    #self.imageLabel.setMaximumSize(self.width(),  self.height())
-    #if self.height() < self.img.height() :
-    #  self.img = self.img.scaledToHeight(self.height())
-    #if self.width() < self.img.width() :
-    #  self.img = self.img.scaledToWidth(self.width())
-    #self.imageLabel.setPixmap(self.img)
-
-    if self.scrollArea.height() < self.imageLabel.pixmap().height():
-      self.orig_pixmap.scaledToHeigth(self.scrollArea.heigth())
-      #fact = (self.imageLabel.pixmap().height() - self.scrollArea.height()) / 100
-      #self.stateinfo = str(fact)
-      #self.matrix.scale(fact, fact)
-      #pixmap = self.orig_pixmap.transformed(self.matrix)
-
-    if self.scrollArea.width() < self.imageLabel.pixmap().width():
-      self.orig_pixmap.scaledToWidth(self.scrollArea.width())
-      #fact = (self.imageLabel.pixmap().width() - self.scrollArea.width()) / 100
-      #self.stateinfo = str(fact)
-      #self.matrix.scale(fact, fact)
-      #pixmap = self.orig_pixmap.transformed(self.matrix)
-
-    if pixmap != None:
-      self.imageLabel.setPixmap(self.orig_pixmap)
+    self.setImage()
 
 
   def zoom(self, zoomer):
     self.factor *= zoomer
-    self.matrix.scale(zoomer, zoomer)
-    pixmap = self.orig_pixmap.transformed(self.matrix)
-    self.imageLabel.setPixmap(pixmap)
-    self.imageLabel.adjustSize()
+    self.loadedImage.resize(zoomer)
     if self.factor > 3.33:
       self.zoomin.setEnabled(False)
     elif self.factor < 0.33:
@@ -154,39 +286,28 @@ class ImageView(QWidget, Script):
     else:
       self.zoomin.setEnabled(True)
       self.zoomout.setEnabled(True)
-    #self.scrollArea.setWidget(self.imageLabel)
+
+  
+  def fitbestgeom(self):
+    self.factor = 1
+    self.loadedImage.adjust(self.sceneWidth)
+    self.zoomin.setEnabled(True)
+    self.zoomout.setEnabled(True)
 
 
   def rotate(self, angle):
-    pass
-    self.matrix.rotate(angle)
-    pixmap = self.orig_pixmap.transformed(self.matrix)
-    self.imageLabel.setPixmap(pixmap)
-    self.imageLabel.adjustSize()
+    self.loadedImage.rotate(angle)
 
 
   def updateWidget(self):
-    pass
-    #self.imageLabel.setMaximumSize(self.width(),  self.height())
-    #if self.height() < self.img.height() :
-    #  self.img = self.img.scaledToHeight(self.height())
-    #if self.width() < self.img.width() :
-    #  self.img = self.img.scaledToWidth(self.width())
-    #self.imageLabel.setPixmap(self.img)
+    self.sceneWidth = self.scrollArea.geometry().width()
+    self.loadedImage.adjust(self.sceneWidth)
+
 
   def resizeEvent(self, e):
-    pass
-    #self.img = QPixmap()
-    #self.img.loadFromData("")
-    #self.imageLabel.setPixmap(self.img)
-    #self.imageLabel.setMaximumSize(self.width(),  self.height())
-    #if self.height() < self.img.height() :
-    #  self.img = self.img.scaledToHeight(self.height())
-    #if self.width() < self.img.width() :
-    #  self.img = self.img.scaledToWidth(self.width())
-    #self.imageLabel.update()
-    #self.imageLabel.setPixmap(self.img)
-    
+    self.sceneWidth = self.scrollArea.geometry().width()
+    self.loadedImage.adjust(self.sceneWidth)
+
 
 class viewerimage(Module):
   def __init__(self):

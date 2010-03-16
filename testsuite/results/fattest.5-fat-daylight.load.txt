@@ -1,0 +1,22 @@
+Type of Fat: 12
+Number of Fat 2
+Number of Cluster: 2847
+Sectors per Cluster: 1
+-------------------
+Size (bytes -- hex)
+-------------------
+Fat: 4608 -- 0x00001200
+Root Directory: 7168 -- 0x00001c00
+Bytes Per Sector: 512 -- 0x00000200
+----------------------
+Offsets (bytes -- hex)
+----------------------
+Fat: 512 -- 0x00000200
+Root Directory: 9728 -- 0x00002600
+Data Region: 16896 -- 0x00004200
+----------------------
+Total File: 2
+Total Dir: 0
+Deleted File: 0
+Deleted Directory: 0
+----------------------

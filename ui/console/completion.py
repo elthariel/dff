@@ -1,46 +1,50 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
 # and IRC channels for your use.
 # 
 # Author(s):
-#  Christophe Malinge <cma@digital-forensic.org>
 #  Frederic Baguelin <fba@digital-forensic.org>
+#  Christophe Malinge <cma@digital-forensic.org>
 #
 
-from api.vfs import *
-from api.env import *
-from api.loader import *
-from api.type import *
+#from api.vfs import *
+#from api.env import *
+#from api.loader import *
+#from api.type import *
+from api.manager.manager import ApiManager
 
-import os.path, os, sys
-import dircache
-
+#import os.path, os, sys
+import sys
+#import dircache
 import utils
-
-from types import *
-
 import re
-
+#from types import *
 #predefined arguments types:
 #node, path, driver, script
 
 class Completion():
     def __init__(self, raw_input):
         #init framework core dependencies
-        self.env = env.env()
-        self.loader = loader.loader()
-        self.vfs = vfs.vfs()
-        self.lmodules = self.loader.modules
-	self.console = raw_input 
-
+        
+        #self.env = env.env()
+        #self.loader = loader.loader()
+        #self.vfs = vfs.vfs()
+        #self.lmodules = self.loader.modules
+	self.api = ApiManager()
+	self.env = self.api.env()
+        self.loader = self.api.loader()
+        self.vfs = self.api.vfs()
+        self.lmodules = self.loader.get_modules()
+	self.OS = self.api.OS()
+	self.console = raw_input
+ 
     def get_completion_scope(self, arg, begidx):
         cur_arg = None
         prev_arg = None
@@ -98,20 +102,21 @@ class Completion():
         supplied = supplied.replace("\ ", " ")
         out["supplied"] = supplied
         if node:
-            if node.next.empty():
+            if node.empty_child():
                 if self.cur_str == "/":
                     out["matches"].append("")
                 else:
                     out["matches"].append("/")
                 out["matched"] += 1
             else:
+                #list = node.next()
                 list = node.next
                 #for i in range(node.next.size()):
                 #    print node.next[i].name
             #completion on a path
                 if supplied == "":
                     for i in  list:
-                        if not i.next.empty():
+                        if not i.empty_child():
                             if len(i.name + "/") > out["length"]:
                                 out["length"] = len(i.name + "/")
                             out["matches"].append(i.name + "/")
@@ -123,7 +128,7 @@ class Completion():
                 else:
                     for i in list:
                         if i.name.startswith(supplied) == True:
-                            if not i.next.empty():
+                            if not i.empty_child():
                                 if len(i.name + "/") > out["length"]:
                                     out["length"] = len(i.name + "/")
                                 out["matches"].append(i.name + "/")
@@ -147,11 +152,12 @@ class Completion():
         path = self.cur_str
 
         if path == "":
-            rpath = os.getcwd() + "/"
+            #rpath = os.getcwd() + "/"
+            rpath = self.OS.getcwd() + '/'
         else:
             idx = path.rfind("/")
             if idx == -1:
-                rpath = os.getcwd() + "/"
+                rpath = self.OS.getcwd() + "/"
                 supplied = path
 
             elif idx == 0:
@@ -161,7 +167,8 @@ class Completion():
             else:
                 supplied = path[idx+1:]
                 if path[0] != "/":
-                    rpath = os.getcwd() + "/" + path[:idx+1]
+                    #rpath = os.getcwd() + "/" + path[:idx+1]
+                    rpath = self.OS.getcwd() + "/" + path[:idx+1]
                 else:
                     rpath = path[:idx+1]
 
@@ -170,14 +177,16 @@ class Completion():
         supplied = supplied.replace("\ ", " ")
         out["supplied"] = supplied
         try:
-            a = dircache.listdir(rpath)
+#	    a = dircache.listdir(rpath)
+            a = self.OS.listdir(rpath)
         except OSError, e:
             return
         if a:
             #completion on a path
             if supplied == "":
                 for it in a:
-                    if os.path.isdir(rpath + '/' + it):
+                    #if os.path.isdir(rpath + '/' + it):
+                    if self.OS.isdir(rpath + '/' + it):
                         #it = it.replace(" ", "\ ")
                         if len(it + "/") > out["length"]:
                             out["length"] = len(it + "/")
@@ -191,7 +200,8 @@ class Completion():
             else:
                 for it in a:
                     if it.startswith(supplied) == True:
-                        if os.path.isdir(rpath + '/' + it):
+                        #if os.path.isdir(rpath + '/' + it):
+                        if self.OS.isdir(rpath + '/' + it):
                             #it = it.replace(" ", "\ ")
                             #print it
                             if len(it + "/") > out["length"]:
@@ -266,8 +276,9 @@ class Completion():
             if to_add:
                 if longest_module < len(cmd):
                     longest_module = len(cmd)
-                mod = self.lmodules[cmd]
-                tag = mod.tags
+#                mod = self.lmodules[cmd]
+		tag =self.loader.get_tags(cmd)
+#                tag = mod.tags
                 if longest_tag < len(tag):
                     longest_tag = len(tag)
                 if tag not in out["matches"]:
@@ -289,8 +300,9 @@ class Completion():
     def get_conf(self, cmd):
         conf = None
         if cmd in self.lmodules:
-            mod = self.lmodules[cmd]
-            conf = mod.conf
+            #mod = self.lmodules[cmd]
+	    conf = self.loader.get_conf(cmd)		
+#            conf = mod.conf
         return conf
 
     def is_cmd_arg(self, arg):
@@ -551,7 +563,6 @@ class Completion():
     def insert_path_comp(self, text, matches):
      max_path = matches["length"]
      cur_path = matches["supplied"].replace("\ ", " ")
-     print cur_path
      col = self.get_max_col(0, max_path)
      idx = 0
      filled = 0
@@ -633,4 +644,3 @@ class Completion():
          if idx < filled:
            sys.stdout.write("\n")
      return self.get_str(text, prev_key[:same])
-

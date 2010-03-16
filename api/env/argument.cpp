@@ -1,12 +1,11 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
@@ -14,8 +13,8 @@
  * Author(s):
  *  Solal J. <sja@digital-forensic.org>
  *  Frederic B. <fba@digital-forensic.org>
- *
  */
+
 
 #include "argument.hpp"
 
@@ -29,6 +28,8 @@ argument::argument(string who)
   from = who;
   km = env::Get();
 }
+
+/* add_xxx(string, val) */
 
 void argument::add_int(string name, int v)
 {
@@ -66,6 +67,27 @@ void argument::add_node(string name, Node* n)
   km->add_var_val(v);
 }
 
+void argument::add_path(string name, string p)
+{
+  v_val* v;
+   
+ 
+  v = new v_val_path(from, name, new Path(p));
+  val_m[name] = v;
+  km->add_var_val(v);
+}
+
+void argument::add_lnode(string name, list<Node *> *v)
+{
+  v_val *v_v;
+
+  v_v = new v_val_lnode(from, name, v);
+  val_m[name] = v_v;
+  km->add_var_val(v_v);
+}
+
+
+/*
 void argument::add_path(string name, Path* n)
 {
   v_val* v;
@@ -74,14 +96,17 @@ void argument::add_path(string name, Path* n)
   val_m[name] = v;
   km->add_var_val(v);
 }
-
-/* //merde avec python ?
+*/
+/* 
 void argument::add(v_val *v)
 {
   val[v->name] = v;
   vars_db[v->name].add_var_val(v);
 }
 */
+
+/* void get(string name, *val)*/
+
 void argument::get(string name, int* v)
 {
   v_val_int *t;
@@ -149,6 +174,24 @@ void argument::get(string name, Path** v)
   }
 }
 
+void argument::get(string name, list<Node *> **v)
+{
+  v_val_lnode* t;
+
+  t = (v_val_lnode*)val_m[name];
+  if (!t)
+   throw envError("argument " + name + " doesn't exist"); 
+  else
+  {
+    if (!t->value)
+      throw envError("argument " + name + " value not set");
+    *v = t->value;
+  }
+}
+
+
+/*int  get_type(string name)  */
+
 int argument::get_int(string name)
 {
   v_val_int *t;
@@ -213,5 +256,22 @@ Path* argument::get_path(string name)
 	 throw envError("argument " + name + " value not set");
    }
    return  t->value;
+  }
+}
+
+list<Node *>* argument::get_lnode(string name)
+{
+  v_val_lnode* t;
+
+  t = (v_val_lnode*)val_m[name];
+  if (!t)
+   throw envError("argument " + name + " doesn't exist"); 
+  else
+  {
+   if (!t->value)
+   {
+	 throw envError("argument " + name + " value not set");
+   }
+   return t->value;
   }
 }

@@ -199,7 +199,7 @@ OPTIMIZE_OUTPUT_FOR_C  = NO
 # For instance, namespaces will be presented as packages, qualified scopes 
 # will look different, etc.
 
-OPTIMIZE_OUTPUT_JAVA   = YES
+OPTIMIZE_OUTPUT_JAVA   = NO
 
 # If you use STL classes (i.e. std::string, std::vector, etc.) but do not want to 
 # include (a tag file for) the STL sources as input, then you should 
@@ -493,7 +493,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = api ui modules testsuite
+INPUT                  = api ui/console
 
 # This tag can be used to specify the character encoding of the source files that 
 # doxygen parses. Internally doxygen uses the UTF-8 encoding, which is also the default 
@@ -587,13 +587,13 @@ INPUT_FILTER           =
 # info on how filters are used. If FILTER_PATTERNS is empty, INPUT_FILTER 
 # is applied to all files.
 
-FILTER_PATTERNS        = *.py=ressources/doxypy
+FILTER_PATTERNS        = 
 
 # If the FILTER_SOURCE_FILES tag is set to YES, the input filter (if set using 
 # INPUT_FILTER) will be used to filter the input files when producing source 
 # files to browse (i.e. when SOURCE_BROWSER is set to YES).
 
-FILTER_SOURCE_FILES    = YES
+FILTER_SOURCE_FILES    = NO
 
 #---------------------------------------------------------------------------
 # configuration options related to source browsing
@@ -606,7 +606,7 @@ FILTER_SOURCE_FILES    = YES
 # then you must also enable this option. If you don't then doxygen will produce 
 # a warning and turn it on anyway
 
-SOURCE_BROWSER         = YES
+SOURCE_BROWSER         = NO
 
 # Setting the INLINE_SOURCES tag to YES will include the body 
 # of functions and classes directly in the documentation.

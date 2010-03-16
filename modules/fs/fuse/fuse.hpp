@@ -1,19 +1,17 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
  *  Solal Jacob <sja@digital-forensic.org>
- *
  */
 
 #ifndef __LOCAL_HH__
@@ -25,8 +23,7 @@
 #include "type.hpp"
 #include "vfs.hpp"
 #include "conf.hpp"
-#include "loader.hpp"
-#include "fdmanager.hpp"
+//#include "fdmanager.hpp"
 #include "../local/utype.hpp"
 
 #define FUSE_USE_VERSION 26
@@ -49,12 +46,12 @@
 
 using namespace std;
 
-VFS&	vfs = VFS::Get();
+//VFS&	vfs = VFS::Get();
  
 class fuse : public fso
 {
 public:
-  fuse(string dname) {  name = dname;  res = new results(dname); };
+  fuse();
 //  virtual ~fuse(){ /*close all system fd */};
   virtual void		start(argument* arg);
   virtual int 		vopen(Handle*) { return -1; };

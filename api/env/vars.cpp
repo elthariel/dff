@@ -1,12 +1,11 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
@@ -14,11 +13,11 @@
  * Author(s):
  *  Solal J. <sja@digital-forensic.org>
  *  Frederic B. <fba@digital-forensic.org>
- *
  */
 
 #include "vars.hpp"
 
+/* v_descr */
 
 v_descr_int::v_descr_int(string f, string n, bool opt, string descr)
 {
@@ -84,6 +83,17 @@ int  v_descr_int::check_val(int v)
   return (1);
 }
 
+v_descr_lnode::v_descr_lnode(string f, string n, bool opt, string descr)
+{
+  from = f;
+  name = n;
+  type = "lnode";
+  optional = opt;
+  description = descr;
+}
+
+/* v_val get*/
+
 int v_val::get_int(void)
 {
   return (((v_val_int *)this)->value);
@@ -108,6 +118,13 @@ Path* v_val::get_path(void)
 {
   return (((v_val_path *)this)->value);
 }
+
+list<Node* >* v_val::get_lnode(void)
+{
+  return (((v_val_lnode *)this)->value);
+} 
+
+/* v_val_type */
 
 v_val_int::v_val_int(string f,string n, int v)
 {
@@ -147,4 +164,12 @@ v_val_path::v_val_path(string f, string n, Path *v)
   name = n;
   value = v;
   type = "path";
+}
+
+v_val_lnode::v_val_lnode(string f, string n, list<Node* >* v)
+{
+  from = f;
+  name = n;
+  value = v;
+  type = "lnode";
 }

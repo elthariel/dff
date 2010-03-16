@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -322,10 +321,19 @@ class InterpreterView(QTextEdit, InteractiveInterpreter):
         """ Return True if str is enclosed by a string mark """
         return ((str.startswith("'''") and str.endswith("'''")) or (str.startswith('"""') and str.endswith('"""')) or \
              (str.startswith("'") and str.endswith("'")) or (str.startswith('"') and str.endswith('"')))
+
+class MDockWidget(QDockWidget):
+    def __init__(self, mainWindow = None):
+        QDockWidget.__init__(self, mainWindow)
+        self.init()
+        self.show()
+
+    def init(self):
+        self.setAllowedAreas(Qt.AllDockWidgetAreas)
         
-class Interpreter(QDockWidget):
+class Interpreter(MDockWidget):
     def __init__(self, mainWindow=None):
-        QDockWidget.__init__(self)
+        MDockWidget.__init__(self, mainWindow)
         self.__mainWindow = mainWindow
         self.icon = QIcon(":interpreter.png")
         self.addAction(mainWindow)

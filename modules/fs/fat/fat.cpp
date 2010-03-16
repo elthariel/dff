@@ -1,19 +1,17 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
  *  Frederic Baguelin <fba@digital-forensic.org>
- *
  */
 
 #include "fat.hpp"
@@ -231,6 +229,10 @@ void Fat::start(argument* arg)
   string path;
   Info	*info;
 
+
+  fdm = new fdmanager;
+  fdm->InitFDM();
+  filehandler = new FileHandler();
   attr = new attrib;
   arg->get("parent", &ParentNode);
   root = CreateNodeDir(ParentNode, "Fat", attr);
@@ -395,7 +397,7 @@ int	Fat::DefineFatType()
 
 unsigned int Fat::status(void)
 {
-  return (fdm.fdallocated);
+  return (fdm->fdallocated);
 }
 
 Fat::~Fat()
@@ -405,19 +407,21 @@ Fat::~Fat()
   Close();
 }
 
-Fat::Fat(string dname)
+Fat::Fat()
 {
-  name = dname;
-  fdm.InitFDM();
+  name = "fat";
+  //fdm = new fdmanager;
+  //fdm->InitFDM();
+  File = 0;
   total_file = 0;
   total_dir = 0;
   deleted_file = 0;
   deleted_dir = 0;
-  res = new results(dname);
-  log = new Log(1);
-  filehandler = new FileHandler();
+  res = new results(name);
+  log = new Log(0);
+//  filehandler = new FileHandler();
 }
-
+/*
 extern "C"
 {
   fso* create(void)
@@ -442,4 +446,4 @@ extern "C"
     }
   };
   proxy p;
-}
+}*/

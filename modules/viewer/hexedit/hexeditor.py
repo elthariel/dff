@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -20,8 +19,9 @@ from api.vfs import *
 from api.module.module import *
 
 from PyQt4.QtCore import QSize, SIGNAL
-from PyQt4.QtGui import QWidget, QVBoxLayout, QIcon
+from PyQt4.QtGui import QWidget, QVBoxLayout, QIcon, QMessageBox
 from ui.gui.utils.utils import DFF_Utils
+
 from Heditor import Heditor
 
 try :
@@ -33,7 +33,7 @@ class ViewerHexa(QWidget, Script):
     def __init__(self):
         Script.__init__(self, "hexedit")
         self.type = "hexedit"
-        self.icon = None    
+#        self.icon = ":hexedit.png"
         
     def start(self, args) :
         self.args = args
@@ -44,16 +44,20 @@ class ViewerHexa(QWidget, Script):
           nceditor.start(node)
 	except NameError:
 	  print "This functionality is not available on your operating system"	
-     
+
     def g_display(self):
         QWidget.__init__(self)
         self.vlayout = QVBoxLayout(self)
-        self.Grid = Heditor(self)
-        self.Grid.show()
-        self.vlayout.addWidget(self.Grid)
+        self.widget = Heditor(self)
+        self.vlayout.addWidget(self.widget)
         node = self.args.get_node("file")
-        self.name = "hexedit " + str(node.name)
-        self.Grid.initFile(node)
+        self.name = "hexedit " + str(node.name)        
+        if node.attr.size > 0:
+          self.widget.init(node)
+        else:
+          msg = QMessageBox(QMessageBox.Critical, "Hexadecimal viewer", "Error: File is empty", QMessageBox.Ok)
+          msg.exec_()
+          
         
     def updateWidget(self):
         pass

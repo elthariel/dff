@@ -1,22 +1,30 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
- *  Solal Jacob <sja@digital-forensic.org>
- *
+ *  Frederic Baguelin <fba@digital-forensic.org>
  */
 
 #include "partition.hpp"
+#include "common.hpp"
+
+
+int	Partition::vclose(int fd)
+{
+  FileInfo *fi;
+
+  this->fdm->ClearFD(fd);
+  return 0;
+}
 
 int	Partition::Open()
 {
@@ -79,12 +87,12 @@ int	Partition::vopen(Handle* handle)
   if (handle == NULL)
      throw vfsError("Partition::vopen handle null\n"); 
   //cout << *((string*)(handle)) << endl;
-  if ((fi = FI.find(handle->name)->second) != NULL)
+  if ((fi = this->filehandler->get(handle->id)) != NULL)
     {
       fd = new FDInfo;
-      fd->fdata = (void*)fi;
+      fd->fdata = fi;
       fd->current = 0;
-      int i = fdm.AllocFD(fd);
+      int i = this->fdm->AllocFD(fd);
       return (i);
     }
   throw vfsError("Partition::vopen can't find\n");
@@ -101,9 +109,6 @@ void	*CopyBuffer(char *dst, char *src, unsigned int start, unsigned int size)
   return ((void*)dstptr);
 }
 
-// TODO
-// Revoir le systeme de l extract : lecture de 512 a passer en 4096 ?
-// sinon c'est long...
 int	Partition::vread(int fd, void *buff, unsigned int size)
 {
   dff_ui64	BytesRead;
@@ -114,7 +119,7 @@ int	Partition::vread(int fd, void *buff, unsigned int size)
   FDInfo	*vfd;
   FileInfo	*fi;
   
-  vfd = fdm.GetFDInfo(fd);
+  vfd = this->fdm->GetFDInfo(fd);
   if (vfd != NULL)
     {
       fi = (FileInfo*)vfd->fdata;
@@ -163,20 +168,12 @@ int	Partition::vread(int fd, void *buff, unsigned int size)
   return -1;
 }
 
-int	Partition::vclose(int fd)
-{
-  FileInfo *fi;
-
-  fdm.ClearFD(fd);
-  return 0;
-}
-
 dff_ui64	Partition::vseek(int fd, dff_ui64 offset, int whence)
 {
   FDInfo *vfd;
   FileInfo	*fi;
 
-  vfd = fdm.GetFDInfo(fd);
+  vfd = this->fdm->GetFDInfo(fd);
   fi = (FileInfo*)vfd->fdata;
   if (whence == 0)
     if (offset < fi->size)
@@ -191,163 +188,178 @@ dff_ui64	Partition::vseek(int fd, dff_ui64 offset, int whence)
   return vfd->current;
 }
 
-// int	Partition::GetExtended()
-// {
-// }
-
-int	Partition::ListAll()
+bool	Partition::isExtended(char type)
 {
-  MBR	mbr;
-  int	i;
-  int	j;
-  char	ext[] = "\x05\x0F\x85\x91\x9B\xD5";
-  ExtendedBootRecords Ebr;
-  unsigned long int test;
-  unsigned long long int tmp; 
-  FileInfo	*fi;
-  string	path;
-
-  memset(&mbr, 0, 512);
-  Read(&mbr, 512);
-  printf("/---------------------------------\\\n");
-  printf("| Master Boot Record Information: |\n");
-  printf("\\---------------------------------/\n");
-  printf("Disk Signature: 0x%x\n", mbr.DiskSignature);
-  printf("Mbr Signature:  0x%hx\n", mbr.MbrSignature);
-  printf("\n/------------------------\\\n");
-  printf("| Partition Information: |\n");
-  printf("\\------------------------/\n");
-  i = 0;
-  while ((i !=4) && (mbr.Pp[i].PartitionType != 0))
-    {
-      printf("\n/-------------\\\n");
-      printf("| Partition %i |\n", i + 1);
-      printf("\\-------------/\n");
-      printf("Boot flags:     0x%hhx\n", mbr.Pp[i].Status);
-      printf("Partition Type: 0x%hhx\n", mbr.Pp[i].PartitionType);
-      printf("Start Sector:   %d -- 0x%x\n", mbr.Pp[i].Lba, mbr.Pp[i].Lba);
-      test = mbr.Pp[i].Lba * 512;
-      tmp = (unsigned long long int)(mbr.Pp[i].TotalSectors) * 512;
-      //tmp = tmp * 512;
-      //tmp = 12345678901234ULL;
-      printf("Start Offset:   0x%lx\n", test);
-      printf("Size: %llu\n", tmp);
-
-      //printf("TESTING: %llu\n", mbr.Pp[i].TotalSectors * 512);
-      string handle;
-      attrib	*attr = new attrib;
-
-      path = "part";
-      char* res = new char[1024];
-      sprintf(res, "%d", i);
-      path += res;
-      handle = path;
-      fi = new FileInfo;
-      fi->start = mbr.Pp[i].Lba * 512;
-      fi->size = tmp;
-      attr->handle = new Handle(handle);
-      attr->size = tmp;
-      FI.insert(pair<string, FileInfo*>(path, fi));
-      CreateNodeFile(ParentNode, path, attr);
-      
-      for (j = 0; ext[j]; j++)
-	if (mbr.Pp[i].PartitionType == ext[j])
-	  {
-	    printf("Extended Partition\n");
-	    //Seek(mbr.Pp[i].Lba*512)
-	  }
-      i++;
-    }
-  return 0;
+   char	ext[] = "\x05\x0F\x85\x91\x9B\xD5";
+   unsigned int	i;
+   bool	res;
+  
+   res = false;
+   for (i = 0; ext[i]; i++)
+     if (ext[i] == type)
+       res = true;
+   return res;
 }
 
-// int	Partition::GetMbr(MBR *mbr)
-// {
-// }
+Node	*Partition::createPart(Node *parent, unsigned int sector_start, unsigned int size)
+{
+  attrib		*attr;
+  FileInfo		*fi;
+  unsigned long long	handle;
 
-// int	Partition::GetPartitionEntry()
-// {
-// }
+  std::ostringstream os;
 
-// Analyse de sparse (Recherche de Cluster non allouees dans la Fat)
-// Parsing de la Fat : si non alloue, allez voir le contenu du cluster
+  attr = new attrib;
+  fi = new FileInfo();
+  fi->start = sector_start * 512;
+  fi->size = size * 512;
+  handle = this->filehandler->add(fi);
+  attr->size = fi->size;
+  attr->handle = new Handle(handle);
+  os << "Partition " << this->part_count;
+  this->part_count += 1;
+  return CreateNodeFile(parent, os.str(), attr);
+}
+
+string	Partition::hexilify(char type)
+{
+  std::ostringstream		res;
+  
+  res << std::hex << std::setiosflags(ios_base::showbase | ios_base::uppercase);
+  res << (int)type;
+  return res.str();
+}
+
+void	Partition::readExtended(Node *parent, unsigned int start, unsigned int next_lba)
+{
+  ebr			ebrEntry;
+  unsigned long long	startOffset;
+  unsigned long long	endOffset;
+  unsigned int	        i;
+  bool			jumped;
+  partition_entry	*part;
+ 
+  startOffset = start + next_lba;
+  this->Seek(startOffset * 512);
+  memset(&ebrEntry, 0, sizeof(ebr));
+  if (this->Read(&ebrEntry, sizeof(ebr)) != 0)
+    {
+      jumped = false;
+      part = (partition_entry*)malloc(sizeof(partition_entry));
+      for (i = 0; i != 4; i++)
+	{
+	  if (ebrEntry.part[i].type != 0)
+	    {
+	      memcpy(part, &(ebrEntry.part[i]), sizeof(partition_entry));
+	      if (((i < 2) && jumped) || (i >= 2))
+		this->Result << "Hidden partition !!!" << endl;
+	      if (isExtended(part->type))
+		this->readExtended(parent, start, part->lba);
+	      else
+		{
+		  this->Result << "   +- Partition " << this->part_count << endl;
+		  this->Result << "      |-- type  : " << this->hexilify(part->type) << endl;
+		  this->Result << "      |-- start : " << part->lba + startOffset << endl;
+		  this->Result << "      |-- end   : " << part->lba - 1 + part->total_blocks << endl;
+		  this->Result << "      |-- size  : " << part->total_blocks << endl;
+		  this->createPart(parent, part->lba + startOffset, part->total_blocks);
+		}
+	    }
+	  else if (i < 2)
+	    jumped = true;
+	}
+    }
+}
+
+
+//Only checking the type is not enough !!!
+//anybody could set type to 0 to fake partition manager...
+void	Partition::readMbr()
+{
+  mbr			mbrEntry;
+  unsigned int		i;
+  partition_entry	*part;
+  bool			jumped;
+  Node			*node;
+
+  memset(&mbrEntry, 0, sizeof(mbr));
+  if (this->Read(&mbrEntry, sizeof(mbr)) != 0)
+    {
+      jumped = false;
+      part = (partition_entry*)malloc(sizeof(partition_entry));
+      for (i = 0; i != 4; i++)
+	{
+	  if (mbrEntry.part[i].type != 0)
+	    {
+	      if (jumped)
+		this->Result << "Hidden primary partition entry" << endl;
+	      memcpy(part, &(mbrEntry.part[i]), sizeof(partition_entry));
+	      if (this->isExtended(part->type))
+		{
+		  this->Result << "+- Partition " << this->part_count << " (extended)" << endl;
+		  this->Result << "    |-- type  : " << this->hexilify(part->type) << endl;
+		  this->Result << "    |-- start : " << part->lba << endl;
+		  this->Result << "    |-- end   : " << part->lba - 1 + part->total_blocks << endl;
+		  this->Result << "    |-- size  : " << part->total_blocks << endl;
+		  node = this->createPart(this->ParentNode, part->lba, part->total_blocks);
+		  this->readExtended(node, part->lba, 0);
+		}
+	      else
+		{
+		  this->Result << "+- Partition " << this->part_count << " (primary)" << endl;
+		  this->Result << "    |-- type  : " << this->hexilify(part->type) << endl;
+		  this->Result << "    |-- start : " << part->lba << endl;
+		  this->Result << "    |-- end   : " << part->lba - 1 + part->total_blocks << endl;
+		  this->Result << "    |-- size  : " << part->total_blocks << endl;
+		  this->createPart(this->ParentNode, part->lba, part->total_blocks);
+		}
+	    }
+	  else
+	    jumped = true;
+	}
+      free(part);
+    }
+}
+
 void Partition::start(argument* arg)
 {
   attrib	*attr;
-  //Node	*root;
   string path;
   Info	*info;
 
+  this->fdm = new fdmanager;
+  this->fdm->InitFDM();
+  this->filehandler = new FileHandler();
+  this->part_count = 1;
+  this->name = "partition";
   attr = new attrib;
   arg->get("parent", &this->ParentNode);
-  printf("sizeof unsigned long long int: %d\n", sizeof(unsigned long long int));
-  //root = CreateNodeDir(parent, "Partition", attr);
   Open();
-  ListAll();
-  //SetResult();
-  cout << endl;
+  this->Result << endl;
+  this->readMbr();
+  if (this->part_count > 1)
+    this->res->add_const("partitions found", this->Result.str());
+  else
+    this->res->add_const("no partition found", "");
   return;
 }
 
 int	Partition::SetResult()
 {
-  //char* cres	= new cres[1024];
-  //String Result;
-
-  //  "Partition Table Information\n";
-//   sprintf(res, "Type of Fat: %d\n", FatType);
-  // Result = cres;
-//   sprintf(res, "Number of Fat %d\n", Bpb.NumberOfFat);
-//  Result += res;
-  //Result += "----------------------\n";
   return (0);
 }
 
 unsigned int Partition::status(void)
 {
-  return (fdm.fdallocated);
+  return (this->fdm->fdallocated);
 }
-
+Partition::Partition()
+{
+  this->name = "partition";
+  res = new results(this->name);
+}
 Partition::~Partition()
 {
   //Free All Memory !!!
   cout << "Dump Closed successfully" << endl;
-}
-
-Partition::Partition(string dname)
-{
-  name = dname;
-  fdm.InitFDM();
-  //total_file = 0;
-  //total_dir = 0;
-  //deleted_file = 0;
-  //deleted_dir = 0;
-  res = new results(dname);
-}
-
-extern "C"
-{
-  fso* create(void)
-  {
-    return (new Partition("partition"));
-  }
-
-  void destroy(fso *p)
-  {
-    delete p;
-  }
-
-  class proxy 
-  {
-    public :
-    proxy()
-    {
-      CModule* cmod = new CModule("partition", create);
-      cmod->conf->add("parent", "node");
-      cmod->tags = "fs";
-      //drv->conf->add_const("mime-type", std::string("x86 boot sector"));
-    }
-  };
-
-  proxy p;
 }

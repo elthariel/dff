@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -19,7 +18,6 @@ import string
 from api.vfs import *
 from api.module.script import*
 from api.module.module import *
-from api.module.libcmodule import *
 
 from api.env import *
 from api.env.libenv import *
@@ -32,7 +30,7 @@ class streamstrings(Module):
   def __init__(self):
     Module.__init__(self, "streamstrings", streamfs)
     self.conf.add("parent", "node")
-    self.tags = "fs"
+    self.tags = "shared memory"
     self.flags  = [""]
 
 class streamfs(fso):
@@ -45,9 +43,14 @@ class streamfs(fso):
     setattr(self, "vwrite", self.vwrite) 
     setattr(self, "vseek", self.vseek) 
     setattr(self, "vclose", self.vclose)
+    setattr(self, "__getstate__", self.__getstate__)
     self.res = results(self.name)
+
+  def __getstate__(self):
+    print "STREAMSTRING GETSTATE ! "
  
   def start(self, args):
+    raise vfsError("streamstrings read parent" + error)
     parent = args.get_node('parent')
     attr  = attrib()
     attr.thisown = 0 

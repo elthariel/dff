@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -32,19 +31,41 @@ class Ide(QWidget):
         super(Ide,  self).__init__(parent)
         self.loader = loader.loader()
         self.parent = parent
+        self.actions = parent.actions
+
         self.pages = []
         self.mainWindow = self.parent.getParent()
         
+    def initActions(self):
+        self.actions.saveact.connect(self.actions.saveact,  SIGNAL("triggered()"), self.saveactBack)
+        self.actions.saveasact.connect(self.actions.saveasact,  SIGNAL("triggered()"), self.saveasactBack)
+        self.actions.runact.connect(self.actions.runact,  SIGNAL("triggered()"), self.runactBack)
+        self.actions.undoact.connect(self.actions.undoact,  SIGNAL("triggered()"), self.undoactBack)
+        self.actions.redoact.connect(self.actions.redoact,  SIGNAL("triggered()"), self.redoactBack)
+
     def g_display(self):
         self.vbox = QVBoxLayout()
         self.createSplitter()
         self.setLayout(self.vbox)
 
+        self.setToolbars()
+
+        self.initActions()
+
+    def setToolbars(self):
+
+        self.actions.idetoolbar.setVisible(True)
+
+        self.mainWindow.addToolBar(self.actions.idetoolbar)
+        self.mainWindow.insertToolBarBreak(self.actions.idetoolbar)
+        self.actions.enableActions()
+
+
     def createTabWidget(self):
         self.scripTab = QTabWidget()
         self.buttonCloseTab = QPushButton("")
         self.buttonCloseTab.setFixedSize(QSize(23,  23))
-        self.buttonCloseTab.setIcon(QIcon(":closetab.png"))
+        self.buttonCloseTab.setIcon(QIcon(":cancel.png"))
         self.buttonCloseTab.setEnabled(False)
         self.scripTab.setCornerWidget(self.buttonCloseTab,  Qt.TopRightCorner)
         self.scripTab.connect(self.buttonCloseTab, SIGNAL("clicked()"), self.closeTabWidget)
@@ -68,46 +89,53 @@ class Ide(QWidget):
         #prepare for wizard        
         self.ideWiz = ideWizard(self, "New script")
 #        self.ideWiz.exec_()
-
         #XXX cancel 
-        self.ideWiz.exec_()
-
+        ret = self.ideWiz.exec_()
+        if ret > 0:
         #First page fields
-        scriptname = self.ideWiz.field("name").toString()
-        path = self.ideWiz.field("path").toString()
+            scriptname = self.ideWiz.field("name").toString()
+            path = self.ideWiz.field("path").toString()
         #Get script type
-        stype = self.ideWiz.field("typeS").toBool()
-        gtype = self.ideWiz.field("typeG").toBool()
-        dtype = self.ideWiz.field("typeD").toBool()
+            stype = self.ideWiz.field("typeS").toBool()
+            gtype = self.ideWiz.field("typeG").toBool()
+            dtype = self.ideWiz.field("typeD").toBool()
 
         #Get author's informations from wizard
-        authfname = self.ideWiz.field("authFName").toString()
-        authlname = self.ideWiz.field("authLName").toString()
-        authmail = self.ideWiz.field("authMail").toString()
-
+            authfname = self.ideWiz.field("authFName").toString()
+            authlname = self.ideWiz.field("authLName").toString()
+            authmail = self.ideWiz.field("authMail").toString()
         #Generate script
-        generate = generateCode()
-        generate.set_header(authfname, authlname, authmail)
-        if stype == True:
-            buffer = generate.generate_script(str(scriptname))
-            scin = self.createPage(buffer)
-        if gtype == True:
-            buffer = generate.generate_drivers(str(scriptname))
-            scin = self.createPage(buffer)
-        if dtype == True:
-            buffer = generate.generate_script_gui(str(scriptname))
-            scin = self.createPage(buffer)
+            generate = generateCode()
+            generate.set_header(authfname, authlname, authmail)
+            if stype == True:
+                buffer = generate.generate_script(str(scriptname))
+                scin = self.createPage(buffer)
+            if gtype == True:
+                buffer = generate.generate_drivers(str(scriptname))
+                scin = self.createPage(buffer)
+            if dtype == True:
+                buffer = generate.generate_script_gui(str(scriptname))
+                scin = self.createPage(buffer)
             
-        filename = scriptname + ".py"
-                        
-        scin.setName(filename)
+            filename = scriptname + ".py"
+                
+            scin.setName(filename)
 
-        if path[-1] != "/":
-            path += "/"
-        lpath = path + filename
-        scin.setScriptPath(lpath)
-        self.scripTab.addTab(scin,  filename)
-        self.buttonCloseTab.setEnabled(True)
+            if path[-1] != "/":
+                path += "/"
+            lpath = path + filename
+            scin.setScriptPath(lpath)
+            self.scripTab.addTab(scin,  filename)
+            self.buttonCloseTab.setEnabled(True)
+        else:
+            if len(self.pages) == 0:
+                self.mainWindow.removeDockWidget(self.mainWindow.dockWidget["IDE"])
+                self.mainWindow.dockWidget["IDE"] = None
+                self.actions.ide = self.mainWindow.dockWidget["IDE"]
+                self.actions.idetoolbar.setVisible(False)
+
+#            self.mainWindow.removeToolBar(self.actions.idetoolbar)
+#            self.actions.disableActions()
     
     def openactBack(self):
         #POSIX
@@ -190,6 +218,6 @@ class Ide(QWidget):
             currentPage.destroy(True, True)
             if self.scripTab.count() == 0:
                 self.buttonCloseTab.setEnabled(False)
-                self.mainWindow.Ide_toolBar.disableToolbar()
+#                self.mainWindow.Ide_toolBar.disableToolbar()
 
    

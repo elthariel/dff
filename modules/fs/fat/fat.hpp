@@ -1,19 +1,17 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
  *  Frederic Baguelin <fba@digital-forensic.org>
- *
  */
 
 #ifndef __FAT_HPP__
@@ -30,7 +28,6 @@
 #define FAT12	(char)12
 #define FAT16	(char)16
 #define FAT32	(char)32
-#define FILE	(char)0
 #define DIR	(char)1
 
 #define NORMAL (char)0
@@ -65,32 +62,20 @@ private:
   int				deleted_dir;
   string			dumpname;
   string			modtype;
-  Node				*ParentNode;
   Node				*DeletedItems;
   Node				*SlackNode;
   Node				*BaseTree;
-  VFile				*File;
   Log				*log;
   void				*FatAddr;
   char				FatType;
-  unsigned int			FatOffset;
-  unsigned int			ClusterSize;
-  unsigned int			RootDirOffset;
-  unsigned int			TotalCluster;
-  unsigned int			TotalSector;
-  unsigned int			DataOffset;
-  unsigned int			FatSize;
-  unsigned int			RootDirSize;
-  unsigned long long		DumpSize;
   BiosParameterBlock		Bpb;
   map<string, FileInfo*>	FI;
-  FileHandler			*filehandler;
 
-  int	Open();
-  int	Read(void *buff, unsigned int size);
-  dff_ui64	Seek(dff_ui64 offset);
-  dff_ui64	Seek(dff_ui64 offset, int whence);
-  int	Close();
+  EXPORT int	Open();
+  EXPORT int	Read(void *buff, unsigned int size);
+  EXPORT dff_ui64	Seek(dff_ui64 offset);
+  EXPORT dff_ui64	Seek(dff_ui64 offset, int whence);
+  EXPORT int	Close();
   unsigned int	GetNextClusterEntry(unsigned int cluster);
   int	DefineFatType();
   int	SetResult();
@@ -106,11 +91,24 @@ private:
   void	SetAttr(RootDir rd, attrib *attr);
   vtime	*date_dos2vtime(unsigned short dos_time, unsigned short dos_date);
   int	FreeSpace();
-
+  Node				*ParentNode;
 public:
-  Fat(string name);
-  fdmanager 	fdm;
-  virtual ~Fat();
+//must use arg* and init to reinit opened file
+  string                        ParentNodePath;
+  VFile				*File;
+  unsigned int			FatOffset;
+  unsigned int			ClusterSize;
+  unsigned int			RootDirOffset;
+  unsigned int			TotalCluster;
+  unsigned int			TotalSector;
+  unsigned int			DataOffset;
+  unsigned int			FatSize;
+  unsigned int			RootDirSize;
+  unsigned long long		DumpSize;
+  FileHandler			*filehandler;
+  fdmanager 			*fdm;
+  Fat();
+  ~Fat();
   virtual void		start(argument *arg);
   virtual int vopen(Handle *handle);
   virtual int vread(int fd, void *buff, unsigned int size);

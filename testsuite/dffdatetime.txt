@@ -1,0 +1,24 @@
+>>> from modules.viewer.plot.dffdatetime import DffDatetime
+
+>>> DffDatetime(1, 1, 1).usec
+86400000000L
+
+>>> DffDatetime(2010, 1, 12, 15, 57, 18, 123456).usec
+63398995038123456L
+
+>>> DffDatetime(9999, 12, 31, 23, 59, 59, 123456).usec
+315537983999123456L
+
+>>> DffDatetime(9999, 12, 31, 23, 59, 59, 123456).toQDateTime()
+PyQt4.QtCore.QDateTime(9999, 12, 31, 23, 59, 59)
+
+
+>>> DffDatetime(2010, 13, 1).usec
+Traceback (most recent call last):
+...
+ValueError: month must be in 1..12
+
+>>> DffDatetime()
+Traceback (most recent call last):
+...
+TypeError: Required argument 'year' (pos 1) not found

@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -62,11 +61,6 @@ class DFF_Utils():
         else :
             return str(node.path) + "/" + str(node.name)
 
-    #@staticmethod
-    #def defineOpenDump(dump):
-     #   lTemp = dump.split("/")
-     #   return lTemp[len(lTemp) - 1]
-
     @staticmethod
     def getValue(arg):
         if arg <> None:
@@ -120,15 +114,3 @@ class DFF_Utils():
             arg.add_node(str(nameArg), listNode[i])
             tm.add(str(name), arg, ["thread", "gui"])
         
-    @staticmethod
-    def execExtract(listNode, workspace):
-        e = env.env()
-        tm = TaskManager()
-        for i in range(0, len(listNode)):
-            arg = e.libenv.argument("gui_input")
-            arg.add_node("node", listNode[i])
-            tmp = libtype.Path(str(workspace) + str(listNode[i].name))
-            tmp.thisown = 0
-            arg.add_path("syspath", tmp)
-            arg.add_bool("recursive", int(1))
-            tm.add("extract", arg, ["thread", "gui"])

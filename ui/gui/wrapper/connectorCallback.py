@@ -1,10 +1,9 @@
 # DFF -- An Open Source Digital Forensics Framework
-# Copyright (C) 2009 ArxSys
-# 
+# Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
 # at the top of the source tree.
-# 
+#  
 # See http://www.digital-forensic.org for more information about this
 # project. Please do not directly contact any of the maintainers of
 # DFF for assistance; the project provides a web site, mailing lists
@@ -94,12 +93,9 @@ class ConnectorCallback():
              self.addDockWidget(widget)
 
         def addDockWidget(self, widget):
-            dockwidget = QDockWidget(self.__mainWindow)
-            dockwidget.setAllowedAreas(Qt.AllDockWidgetAreas)
-            dockwidget.setWindowTitle(widget.name)
-            dockwidget.setWidget(widget)
-            QObject.connect(dockwidget, SIGNAL("resizeEvent"), widget.resize)
-            self.__mainWindow.addNewDockWidgetTab(Qt.RightDockWidgetArea, dockwidget)
+          dockwidget = MDockWidget(self.__mainWindow, widget, widget.name)
+          QObject.connect(dockwidget, SIGNAL("resizeEvent"), widget.resize)
+          self.__mainWindow.addNewDockWidgetTab(Qt.RightDockWidgetArea, dockwidget)
 
     instance = None
     
@@ -115,3 +111,17 @@ class ConnectorCallback():
 
     def __setattr__(self, attr, val):
         return setattr(self.instance, attr, val)
+
+
+class MDockWidget(QDockWidget):
+  def __init__(self, mainWindow, widget, name):
+    QDockWidget.__init__(self, mainWindow)
+    self.init(widget, name)
+
+    self.show()
+
+  def init(self, widget, name):
+    self.setAllowedAreas(Qt.AllDockWidgetAreas)
+    self.setWindowTitle(name)
+    self.setWidget(widget)
+    

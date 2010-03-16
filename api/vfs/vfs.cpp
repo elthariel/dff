@@ -1,19 +1,17 @@
-/* 
+/*
  * DFF -- An Open Source Digital Forensics Framework
- * Copyright (C) 2009 ArxSys
- * 
+ * Copyright (C) 2009-2010 ArxSys
  * This program is free software, distributed under the terms of
  * the GNU General Public License Version 2. See the LICENSE file
  * at the top of the source tree.
- * 
- * See http://www.digital-forensic.org for more information about this
+ *  
+ * See http: *www.digital-forensic.org for more information about this
  * project. Please do not directly contact any of the maintainers of
  * DFF for assistance; the project provides a web site, mailing lists
  * and IRC channels for your use.
  * 
  * Author(s):
  *  Solal J. <sja@digital-forensic.org>
- *
  */
 
 #include "vfs.hpp"
@@ -27,48 +25,14 @@ VFS::VFS()
   root->is_file = 0;
   root->attr = new attrib();
   root->parent = root;
+  root->fsobj = 0;
   cwd = root;
   Tree.insert(root);
-  //vp->attr->size = 0;
-
-//cb_refresh_tree = 0 
 }
 
 VFS::~VFS()
 {
-  DeleteNode(root);
-}
-
-void	VFS::DeleteNodeList(list<class Node *> nl)
-{
-   list<Node*>::iterator i = nl.begin();
-  
-   for (; i != nl.end(); i++)
-   { 
-     if ((*i)->next.size())
-       DeleteNodeList((*i)->next);
-     if ((*i) == cwd)
-       cwd = root;
-     Tree.erase(*i);
-   }
-}
-
-int VFS::DeleteNode(Node *node)
-{
-  list<Node*>::iterator i = node->next.begin();
- 
-  DeleteNodeList(node->next);
-  i = node->parent->next.begin();
-  for (; i != node->parent->next.end(); ++i)
-  {
-    if (*i == node)
-    {
-      Tree.erase(*i);
-      node->parent->next.erase(i);
-      break;
-    }
-  }
-  return (1);
+  //DeleteNode(root);
 }
 
 void VFS::cd(Node *path)
@@ -88,11 +52,12 @@ set<Node *>* VFS::GetTree(void)
 
 Node* VFS::GetNode(string path, Node* where)
 {
-  list<Node *>::iterator i = where->next.begin();
+  list<Node *>next = where->next;
+  list<Node *>::iterator i = next.begin();
 
   if (path == "..")
     return (where->parent);	
-  for (; i != where->next.end(); i++)
+  for (; i != next.end(); i++)
   {
      if ((*i)->name == path)
         return (*i); 
@@ -125,6 +90,18 @@ Node* VFS::GetNode(string path)
   return (tmp);
 }
 
+
+void VFS::addNode(Node *n)
+{
+  n->parent->addchild(n);
+  Tree.insert(n);
+  list<CallBack* >::iterator cb = cbl.begin();
+  for (; cb != cbl.end(); cb++)
+  {
+      (*cb)->cbfunc((*cb)->cbdata, n);
+  }
+}
+
 unsigned int VFS::AddNodes(list<Node*>  nl)
 {
   unsigned int num = 0;
@@ -134,12 +111,12 @@ unsigned int VFS::AddNodes(list<Node*>  nl)
     return 0;
   for(;n  != nl.end(); n++)
   {
-    (*n)->parent->addchild((*n));
-    Tree.insert((*n));
-    num++;
-    list<CallBack* >::iterator cb_pp = cbl_pp.begin();
-    for (; cb_pp != cbl_pp.end(); cb_pp++)
-    {
+     (*n)->parent->addchild((*n));
+     Tree.insert((*n));
+     num++;
+     list<CallBack* >::iterator cb_pp = cbl_pp.begin();
+     for (; cb_pp != cbl_pp.end(); cb_pp++)
+     {
       (*cb_pp)->cbfunc((*cb_pp)->cbdata, *n);
     }
   }
@@ -165,8 +142,9 @@ string  VFS::sanitaze(string name, Node* parent)
         tmp += '\?';
    }
    name = tmp;
-   list<Node*>::iterator n = parent->next.begin();
-   for (; n != parent->next.end(); ++n)
+   list<Node *>next = parent->next;
+   list<Node*>::iterator n = next.begin();
+   for (; n != next.end(); ++n)
    {
      if (name == (*n)->name)
      {
@@ -179,7 +157,7 @@ string  VFS::sanitaze(string name, Node* parent)
   return (name);
 }
 
-Node* VFS::CreateNodeDir(fso *fsobj, Node* parent, string name, attrib *attr)
+Node* VFS::CreateNodeDir(fso* fsobj, Node* parent, string name, attrib *attr, bool refresh)
 {
   Node *vp = new Node;
 
@@ -188,16 +166,18 @@ Node* VFS::CreateNodeDir(fso *fsobj, Node* parent, string name, attrib *attr)
   else
     vp->path += parent->path + "/" + parent->name;
   vp->fsobj = fsobj; 
-  vp->name = sanitaze(name, parent);
+  vp->name = name;
   vp->attr = attr;
   vp->parent = parent;
   vp->is_file = 0;
   vp->attr->size = 0;
+  if (refresh == true)
+    addNode(vp);
 
   return (vp);
 }
 
-Node* VFS::CreateNodeFile(fso *fsobj, Node* parent, string name, attrib *attr)
+Node* VFS::CreateNodeFile(fso* fsobj,  Node* parent, string name, attrib *attr, bool refresh)
 {
   Node *vp = new Node;
 
@@ -206,10 +186,12 @@ Node* VFS::CreateNodeFile(fso *fsobj, Node* parent, string name, attrib *attr)
   else
     vp->path += parent->path + "/" + parent->name;
   vp->fsobj = fsobj;
-  vp->name = sanitaze(name, parent);
+  vp->name = name;
   vp->attr = attr;
   vp->parent = parent;
   vp->is_file = 1;
+  if (refresh == true)
+   addNode(vp);
 
   return (vp);
 }
