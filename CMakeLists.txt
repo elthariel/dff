@@ -1,4 +1,4 @@
-# DFF -- An Open Source Digital Forensics Framework
+ # DFF -- An Open Source Digital Forensics Framework
 # Copyright (C) 2009-2010 ArxSys
 # This program is free software, distributed under the terms of
 # the GNU General Public License Version 2. See the LICENSE file
@@ -160,7 +160,7 @@ SET(CPACK_SET_DESTDIR "ON")
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Digital Forensics Framework")
 SET(CPACK_PACKAGE_VENDOR "ArxSys")
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/ressources/Copyright.txt")
 SET(CPACK_PACKAGE_VERSION_MAJOR "0")
 SET(CPACK_PACKAGE_VERSION_MINOR "5")
