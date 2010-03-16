@@ -14,14 +14,15 @@
 #  Solal J. <sja@digital-forensic.org>
 #
 
-import os
+import os, sys
 
 if __name__ == "__main__":
-   file = open("libexceptions.py", 'r') 
-   buff = "import exceptions\n"
-   buff += file.read()
-   file.close()
-   buff = buff.replace('Error(_object)', 'Error(exceptions.Exception)')
-   file = open("libexceptions.py", 'w')
-   file.write(buff)
-   file.close()
+   if len(sys.argv) == 2:
+     file = open(sys.argv[1], 'r') 
+     buff = "import exceptions\n"
+     buff += file.read()
+     file.close()
+     buff = buff.replace('Error(_object)', 'Error(exceptions.Exception)')
+     file = open(sys.argv[1], 'w')
+     file.write(buff)
+     file.close()

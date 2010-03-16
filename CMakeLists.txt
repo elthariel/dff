@@ -106,13 +106,24 @@ endif(UNIX)
 
 SET(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGES_PATH}/${CMAKE_PROJECT_NAME}/)
 
-## Macro to copy files at install
+## Main purpose of this macro if to copy Python files at install.
+# It also deploys .py files in build directory if there is one.
 macro(install_file target_name)
   foreach(file ${ARGN})
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${file})
+      # Be carreful, SWiG generate .py files, which sits in builddir,
+      #  so we have to check if file exists in source dir before copying it.
+      add_custom_target("builddeploy.${target_name}.${file}" ALL
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different
+	  ${CMAKE_CURRENT_SOURCE_DIR}/${file} ${CMAKE_CURRENT_BINARY_DIR}/${file}
+	)
+    endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${file})
     IF (INSTALL)
-      add_custom_target("${target_name}.${file}" ALL)
+      add_custom_target("install.${target_name}.${file}" ALL)
       FILE(RELATIVE_PATH rel ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-      install(FILES ${file} DESTINATION ${PYTHON_SITE_PACKAGES_PATH}/${CMAKE_PROJECT_NAME}/${rel})
+      install(FILES ${file} DESTINATION
+	  ${PYTHON_SITE_PACKAGES_PATH}/${CMAKE_PROJECT_NAME}/${rel}
+	)
     ENDIF (INSTALL)
   endforeach(file ${ARGN}) 
 endmacro(install_file target_name)

@@ -35,12 +35,14 @@ endif ( CMAKE_GENERATOR MATCHES "Visual Studio")
 if (UNIX)
 add_custom_target(patchexceptions ALL
   COMMENT "Patching libexceptions.py"
-  COMMAND python patch.py 
+  COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/patch.py
+    ${CMAKE_CURRENT_BINARY_DIR}/libexceptions.py
 )
 elseif(UNIX)
 add_custom_target(patchexceptions ALL
   COMMENT "Patching libexceptions.py"
-  COMMAND ${PYTHON_EXECUTABLE} patch.py 
+  COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/patch.py
+    ${CMAKE_CURRENT_BINARY_DIR}/libexceptions.py
 )
 endif(UNIX)
 set(exceptions_srcs
