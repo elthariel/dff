@@ -9,7 +9,7 @@ Digital Forensics Framework
 
 1. Introduction
 
-Dff is a simple but powerfull open source tool with a flexible module system
+DFF is a simple but powerfull open source tool with a flexible module system
 which will help you in your digital forensics works, including files recovery
 due to error or crash, evidence research and analysis, etc. The source code is
 written in C++ and Python, allowing performances and great extensibility.
@@ -50,12 +50,12 @@ This project follows three main goals :
 
 Python and Python QT have to be installed first.
 Web-page where Python should be downloaded :
-http://www.python.org/download/releases/2.5.4/.
+http://www.python.org/download/releases/2.6.4/.
 Web-page where Python QT should be downloaded :
 http://www.riverbankcomputing.co.uk/software/pyqt/download
 
-DFF is provided with a Nullsoft installer. User just have to launch it and
-follow instructions to install DFF
+DFF is provided with a Nullsoft installer. Users just have to launch it and
+follow instructions to install DFF.
 
 
 2.2 Linux
@@ -97,7 +97,7 @@ well.
 Graphical :
 Click on the 'File' menu and select 'Add dump'.
 Right-click on the dump, in the 'Files' tab, select 'Open with' and apply a
-filesystem module ; select 'fs' and 'fat' for example.
+filesystem module ; select 'file system' and 'fat' for example.
 Files appears in the 'Virtual File System' tab.
 Many informations are provided under 'log' and 'info' tabs.
 
@@ -129,10 +129,10 @@ Main website : http://www.digital-forensic.org .
 3 mailing lists are provided :
 - User discussions about DFF : dff@digital-forensic.org, registration and
   posting freely available.
- - Developers discussions about DFF : dff-devel@digital-forensic.org,
-   registration and posting freely available.
- - News about DFF releases and event : dff-announce@digital-forensic.org,
-   registration freely available, low level traffic.
+- Developers discussions about DFF : dff-devel@digital-forensic.org,
+  registration and posting freely available.
+- News about DFF releases and event : dff-announce@digital-forensic.org,
+  registration freely available, low level traffic.
 
 Archives of this mailing lists : http://lists.digital-forensic.org
 
