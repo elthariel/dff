@@ -1,0 +1,67 @@
+#
+# This file is part of dff, Digital Forensic Framework
+#
+# Copyright 2010 Julien 'Lta' BALLET <elthariel@gmail.com>
+# Released under the terms of the Free Documentation License
+#
+
+### Introduction
+
+# NOTE: If you want to easily install it, use the binary packages and
+  follow the procedure described here:
+  http://wiki.digital-forensic.org/wiki/dff/Unix__Linux
+
+This little documentation descibes the steps necessary to build,
+install and run dff on your GNU/Linux system.
+This documentation has been written for Debian/Ubuntu systems, but
+should work on other system with few modifications regarding the
+packaging system.
+
+
+### Requirements
+
+## Build dependencies
+- build-essential : make, gcc, g++, libc development headers, libstdc++, etc.
+- python >= 2.5.
+- python-dev, development files for python, the same version/build as python
+- swig >= 1.3.38
+  SWIG has few dependencies, so if this version in not available on
+  your system grab the binary packages for the next version of your
+  system and install it manually. Example :
+  $~> wget http://fr.archive.ubuntu.com/ubuntu/pool/main/s/swig1.3/swig_1.3.40-2ubuntu1_amd64.deb
+  $~> sudo dpkg -i swig_1.3.40-2ubuntu1_amd64.deb
+- cmake
+- (optional) libfuse-dev. FUSE development files.
+
+## Run dependencies (if you need the gui)
+- PyQt4 (python-qt4)
+- Python QScintilla bindings (python-qscintilla2)
+
+### Building and installing
+
+You first need to run cmake, which will detects the components
+installed on your system and will check for dependancies. It'll also
+generates the Makefile that will actually builds the code and install
+the resulting program.
+
+$~> cmake .
+
+Then build the source code :
+
+$~> make -j2
+
+Finally, install it on your system :
+
+$~> sudo make install
+
+
+### Running it !
+
+If you want to run the powerfull console version :
+$~> dff
+
+If you want to use the wonderfull graphical version :
+$~> dff -g
+
+Or you can just go to you desktop menu, goes into the Accessories
+folder and click on DFF
