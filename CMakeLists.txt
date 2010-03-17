@@ -82,7 +82,7 @@ endif(DISABLE_SWIG_THREADING)
 
 find_library(HAVE_FUSE NAMES fuse)
 if(NOT HAVE_FUSE)
-  message(STATUS "fuse library not found; file system module 'fuse' will not be built")
+  message(STATUS "(Optionnal) fuse library not found; file system module 'fuse' will not be built")
 endif(NOT HAVE_FUSE)
 
 IF(WIN32)
@@ -90,18 +90,57 @@ IF(WIN32)
 ENDIF(WIN32)
 
 
-## Python
-
+## Python check
 
 execute_process ( COMMAND python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process ( COMMAND python -c "from distutils.sysconfig import get_python_version; print get_python_version()" OUTPUT_VARIABLE PYTHON_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
 if (UNIX)
-execute_process ( COMMAND  python -c "from distutils.sysconfig import get_config_vars; print get_config_vars()[\"LIBDIR\"] + \"/\" + get_config_vars()[\"LDLIBRARY\"]" OUTPUT_VARIABLE PYTHON_LIBRARIES OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process ( COMMAND  python -c "from distutils.sysconfig import get_python_inc; print get_python_inc()" OUTPUT_VARIABLE PYTHON_INCLUDE_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process ( COMMAND  python -c "from distutils.sysconfig import get_config_vars; print get_config_vars()[\"LIBDIR\"] + \"/\" + get_config_vars()[\"LDLIBRARY\"]" OUTPUT_VARIABLE PYTHON_LIBRARIES OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process ( COMMAND  python -c "from distutils.sysconfig import get_python_inc; print get_python_inc()" OUTPUT_VARIABLE PYTHON_INCLUDE_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT PYTHON_LIBRARIES)
+    message(SEND_ERROR "No Python library found ; please install Python package, at least version 2.5.")
+  else(NOT PYTHON_LIBRARIES)
+    message(STATUS "Python library found: ${PYTHON_LIBRARIES}")
+  endif(NOT PYTHON_LIBRARIES)
+  if(NOT EXISTS ${PYTHON_INCLUDE_PATH}/Python.h)
+    message(SEND_ERROR "No Python include/header file found; install Python development package.")
+  else(NOT EXISTS ${PYTHON_INCLUDE_PATH}/Python.h)
+    message(STATUS "Python header found: ${PYTHON_INCLUDE_PATH}")
+  endif(NOT EXISTS ${PYTHON_INCLUDE_PATH}/Python.h)
 else (UNIX)
-find_package(PythonLibs)
-find_package(PythonInterp)
+  find_package(PythonLibs)
+  find_package(PythonInterp)
+# FIXME for windows validate presence of Python.h in PYTHON_INCLUDE_PATH
 endif(UNIX)
+
+## Python-magic check for Unix only
+if(UNIX)
+  execute_process(COMMAND python -c "import magic; print magic.__file__" OUTPUT_VARIABLE PYTHON_MAGIC_PATH ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT PYTHON_MAGIC_PATH)
+    message(STATUS "Python magic not found. Not needed at build step but mandatory to start DFF.")
+  else(NOT PYTHON_MAGIC_PATH)
+    message(STATUS "Python magic found: ${PYTHON_MAGIC_PATH}")
+  endif(NOT PYTHON_MAGIC_PATH)
+endif(UNIX)
+
+## Python-QT bindings check
+execute_process(COMMAND python -c "import PyQt4; print PyQt4.__path__[0]" OUTPUT_VARIABLE PYTHON_QT4_PATH ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(NOT PYTHON_QT4_PATH)
+  message(STATUS "Python QT4 bindings not found. Not needed at build step but mandatory to start DFF.")
+else(NOT PYTHON_QT4_PATH)
+  message(STATUS "Python QT4 libraries bindings found: ${PYTHON_QT4_PATH}")
+endif(NOT PYTHON_QT4_PATH)
+
+## QScintilla python bindings check, for IDE
+execute_process(COMMAND python -c "from PyQt4 import Qsci; print Qsci.__file__" OUTPUT_VARIABLE PYTHON_QT4_QSCI_PATH ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(NOT PYTHON_QT4_QSCI_PATH)
+  message(STATUS "Python QScintilla bindings not found. Not needed at build step but mandatory to start DFF.")
+else(NOT PYTHON_QT4_QSCI_PATH)
+  message(STATUS "Python QScintilla library bindings found: ${PYTHON_QT4_QSCI_PATH}")
+endif(NOT PYTHON_QT4_QSCI_PATH)
+
+
+
 
 
 SET(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGES_PATH}/${CMAKE_PROJECT_NAME}/)
@@ -121,7 +160,7 @@ macro(install_file target_name)
     IF (INSTALL)
       add_custom_target("install.${target_name}.${file}" ALL)
       FILE(RELATIVE_PATH rel ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-      install(FILES ${file} DESTINATION
+      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${file} DESTINATION
 	  ${PYTHON_SITE_PACKAGES_PATH}/${CMAKE_PROJECT_NAME}/${rel}
 	)
     ENDIF (INSTALL)
