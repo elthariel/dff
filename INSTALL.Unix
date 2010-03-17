@@ -8,7 +8,8 @@
 ### Introduction
 
 # NOTE: If you want to easily install it, use the binary packages and
-  follow the procedure described here: http://wiki.digital-forensic.org/wiki/dff/Unix__Linux
+  follow the procedure described here:
+  http://wiki.digital-forensic.org/wiki/dff/Unix__Linux
 
 This little documentation descibes the steps necessary to build,
 install and run dff on your GNU/Linux system.
@@ -62,8 +63,5 @@ $~> dff
 If you want to use the wonderfull graphical version :
 $~> dff -g
 
-Or you can just go to you desktop menu, goes into the Accessories
-folder and clock on DFF
-
-
-
+Or you can just go to you desktop menu, into the Accessories
+folder and click on the DFF icon
