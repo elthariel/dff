@@ -5,3 +5,4 @@ include /usr/share/cdbs/1/class/cmake.mk
 
 
 # Add here any variable or target overrides you need.
+DEB_CMAKE_EXTRA_FLAGS = "-DINSTALL=ON"
