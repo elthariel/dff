@@ -8,7 +8,7 @@ Homepage: http://www.digital-forensic.org/
 
 Package: dff
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python-qscintilla2, python-qt4, python, libfuse2
+Depends: ${shlibs:Depends}, ${misc:Depends}, python-qscintilla2, python-qt4, python, libfuse2, python-magic
 Description: A powerfull, efficient and modular digital forensic tool
  Dff is a simple but powerful open source tool with a flexible module
  system which will help you in your digital forensics works, including
